@@ -1,12 +1,14 @@
 <script>
 	import { clickOutside } from '$lib/utils/clickOutside.js';
+	import Icon from './icons/Icon.svelte';
 
 	let { value = $bindable(), placeholder = "Pilih Tanggal" } = $props();
 
 	let isOpen = $state(false);
+	let viewMode = $state('days'); // 'days' | 'months' | 'years'
 	
 	// Format the display date
-	let displayDate = $derived(() => {
+	let displayDate = $derived.by(() => {
 		if (!value) return placeholder;
 		try {
 			const d = new Date(value);
@@ -20,11 +22,10 @@
 		}
 	});
 
-	// For the calendar grid
 	let currentMonth = $state(new Date().getMonth());
 	let currentYear = $state(new Date().getFullYear());
+	let yearRangeStart = $derived(Math.floor(currentYear / 12) * 12);
 
-	// Initialize from value if exists
 	$effect(() => {
 		if (value && !isOpen) {
 			const d = new Date(value);
@@ -32,22 +33,21 @@
 				currentMonth = d.getMonth();
 				currentYear = d.getFullYear();
 			}
+			viewMode = 'days';
 		}
 	});
 
 	const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+	const shortMonthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
 	
 	const calendarDays = $derived(() => {
 		const days = [];
 		const firstDay = new Date(currentYear, currentMonth, 1).getDay();
 		const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 		
-		// Fill empty slots before 1st day (0 = Sunday, we'll keep Sunday as first column)
 		for (let i = 0; i < firstDay; i++) {
 			days.push(null);
 		}
-		
-		// Fill days
 		for (let i = 1; i <= daysInMonth; i++) {
 			days.push(i);
 		}
@@ -56,23 +56,36 @@
 
 	function toggle() {
 		isOpen = !isOpen;
+		if (isOpen) viewMode = 'days';
 	}
 
-	function prevMonth() {
-		if (currentMonth === 0) {
-			currentMonth = 11;
+	function prevPage() {
+		if (viewMode === 'days') {
+			if (currentMonth === 0) {
+				currentMonth = 11;
+				currentYear -= 1;
+			} else {
+				currentMonth -= 1;
+			}
+		} else if (viewMode === 'months') {
 			currentYear -= 1;
-		} else {
-			currentMonth -= 1;
+		} else if (viewMode === 'years') {
+			currentYear -= 12;
 		}
 	}
 
-	function nextMonth() {
-		if (currentMonth === 11) {
-			currentMonth = 0;
+	function nextPage() {
+		if (viewMode === 'days') {
+			if (currentMonth === 11) {
+				currentMonth = 0;
+				currentYear += 1;
+			} else {
+				currentMonth += 1;
+			}
+		} else if (viewMode === 'months') {
 			currentYear += 1;
-		} else {
-			currentMonth += 1;
+		} else if (viewMode === 'years') {
+			currentYear += 12;
 		}
 	}
 
@@ -80,8 +93,18 @@
 		if (!day) return;
 		const m = String(currentMonth + 1).padStart(2, '0');
 		const d = String(day).padStart(2, '0');
-		value = `${currentYear}-${m}-${d}`; // YYYY-MM-DD
+		value = `${currentYear}-${m}-${d}`;
 		isOpen = false;
+	}
+
+	function selectMonth(idx) {
+		currentMonth = idx;
+		viewMode = 'days';
+	}
+
+	function selectYear(yr) {
+		currentYear = yr;
+		viewMode = 'months';
 	}
 
 	function isSelected(day) {
@@ -99,67 +122,87 @@
 
 <div class="custom-datepicker" use:clickOutside={() => isOpen = false}>
 	<button type="button" class="date-trigger {isOpen ? 'open' : ''}" onclick={toggle}>
-		<span class={!value ? 'placeholder' : ''}>{displayDate()}</span>
-		<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-			<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-			<line x1="16" y1="2" x2="16" y2="6"></line>
-			<line x1="8" y1="2" x2="8" y2="6"></line>
-			<line x1="3" y1="10" x2="21" y2="10"></line>
-		</svg>
+		<span class={!value ? 'placeholder' : ''}>{displayDate}</span>
+		<Icon name="event" size={20} />
 	</button>
 
 	{#if isOpen}
 		<div class="calendar-popup">
 			<div class="calendar-header">
-				<button type="button" class="btn-nav" onclick={prevMonth} title="Bulan Sebelumnya">
-					<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-						<polyline points="15 18 9 12 15 6"></polyline>
-					</svg>
+				<button type="button" class="btn-nav" onclick={prevPage}>
+					<Icon name="chevron_left" size={18} />
 				</button>
 				
-				<div class="month-year-selectors">
-					<select bind:value={currentMonth} class="header-select month-select">
-						{#each monthNames as month, i}
-							<option value={i}>{month}</option>
-						{/each}
-					</select>
-					<select bind:value={currentYear} class="header-select year-select">
-						{#each Array.from({length: 21}, (_, i) => new Date().getFullYear() - 10 + i) as year}
-							<option value={year}>{year}</option>
-						{/each}
-					</select>
+				<div class="header-title">
+					{#if viewMode === 'days'}
+						<button type="button" class="title-btn" onclick={() => viewMode = 'months'}>
+							{monthNames[currentMonth]} {currentYear}
+						</button>
+					{:else if viewMode === 'months'}
+						<button type="button" class="title-btn" onclick={() => viewMode = 'years'}>
+							{currentYear}
+						</button>
+					{:else}
+						<button type="button" class="title-btn">
+							{yearRangeStart} - {yearRangeStart + 11}
+						</button>
+					{/if}
 				</div>
 
-				<button type="button" class="btn-nav" onclick={nextMonth} title="Bulan Selanjutnya">
-					<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-						<polyline points="9 18 15 12 9 6"></polyline>
-					</svg>
+				<button type="button" class="btn-nav" onclick={nextPage}>
+					<Icon name="chevron_right" size={18} />
 				</button>
 			</div>
 			
-			<div class="calendar-grid">
-				<div class="day-name">Min</div>
-				<div class="day-name">Sen</div>
-				<div class="day-name">Sel</div>
-				<div class="day-name">Rab</div>
-				<div class="day-name">Kam</div>
-				<div class="day-name">Jum</div>
-				<div class="day-name">Sab</div>
-				
-				{#each calendarDays() as day}
-					{#if day === null}
-						<div class="empty-day"></div>
-					{:else}
+			{#if viewMode === 'days'}
+				<div class="calendar-grid days-grid">
+					<div class="day-name">Min</div>
+					<div class="day-name">Sen</div>
+					<div class="day-name">Sel</div>
+					<div class="day-name">Rab</div>
+					<div class="day-name">Kam</div>
+					<div class="day-name">Jum</div>
+					<div class="day-name">Sab</div>
+					
+					{#each calendarDays() as day}
+						{#if day === null}
+							<div class="empty-day"></div>
+						{:else}
+							<button 
+								type="button" 
+								class="day-btn {isSelected(day) ? 'selected' : ''} {isToday(day) && !isSelected(day) ? 'today' : ''}" 
+								onclick={() => selectDate(day)}
+							>
+								{day}
+							</button>
+						{/if}
+					{/each}
+				</div>
+			{:else if viewMode === 'months'}
+				<div class="calendar-grid months-grid">
+					{#each shortMonthNames as month, idx}
 						<button 
 							type="button" 
-							class="day-btn {isSelected(day) ? 'selected' : ''} {isToday(day) && !isSelected(day) ? 'today' : ''}" 
-							onclick={() => selectDate(day)}
+							class="grid-btn {currentMonth === idx ? 'selected' : ''}" 
+							onclick={() => selectMonth(idx)}
 						>
-							{day}
+							{month}
 						</button>
-					{/if}
-				{/each}
-			</div>
+					{/each}
+				</div>
+			{:else if viewMode === 'years'}
+				<div class="calendar-grid years-grid">
+					{#each Array.from({length: 12}, (_, i) => yearRangeStart + i) as yr}
+						<button 
+							type="button" 
+							class="grid-btn {currentYear === yr ? 'selected' : ''}" 
+							onclick={() => selectYear(yr)}
+						>
+							{yr}
+						</button>
+					{/each}
+				</div>
+			{/if}
 		</div>
 	{/if}
 </div>
@@ -218,31 +261,28 @@
 		margin-bottom: 16px;
 	}
 
-	.month-year-selectors {
+	.header-title {
+		flex: 1;
 		display: flex;
-		gap: 6px;
+		justify-content: center;
 	}
 
-	.header-select {
-		appearance: none;
-		-webkit-appearance: none;
+	.title-btn {
+		background: none;
 		border: 2px solid transparent;
-		background: #faf9f4;
 		font-family: inherit;
 		font-size: 14px;
 		font-weight: 700;
 		color: #1b1c19;
-		padding: 4px 8px;
+		padding: 6px 12px;
 		cursor: pointer;
 		border-radius: 4px;
 		transition: all 0.15s;
-		text-align: center;
 	}
 
-	.header-select:hover, .header-select:focus {
+	.title-btn:hover {
+		background: #efeee9;
 		border-color: #1b1c19;
-		background: #fff;
-		outline: none;
 	}
 
 	.btn-nav {
@@ -255,6 +295,7 @@
 		justify-content: center;
 		cursor: pointer;
 		transition: background 0.15s;
+		flex-shrink: 0;
 	}
 
 	.btn-nav:hover {
@@ -264,9 +305,17 @@
 
 	.calendar-grid {
 		display: grid;
-		grid-template-columns: repeat(7, 1fr);
 		gap: 4px;
 		text-align: center;
+	}
+
+	.days-grid {
+		grid-template-columns: repeat(7, 1fr);
+	}
+
+	.months-grid, .years-grid {
+		grid-template-columns: repeat(3, 1fr);
+		gap: 8px;
 	}
 
 	.day-name {
@@ -276,18 +325,27 @@
 		padding-bottom: 8px;
 	}
 
-	.day-btn {
+	.day-btn, .grid-btn {
 		background: none;
 		border: 2px solid transparent;
-		padding: 8px 0;
-		font-size: 13px;
 		font-family: inherit;
 		cursor: pointer;
 		border-radius: 4px;
 		transition: all 0.15s;
 	}
 
-	.day-btn:hover {
+	.day-btn {
+		padding: 8px 0;
+		font-size: 13px;
+	}
+
+	.grid-btn {
+		padding: 16px 0;
+		font-size: 14px;
+		font-weight: 600;
+	}
+
+	.day-btn:hover, .grid-btn:hover {
 		background: #efeee9;
 		border-color: #1b1c19;
 	}
@@ -297,7 +355,7 @@
 		font-weight: 700;
 	}
 
-	.day-btn.selected {
+	.day-btn.selected, .grid-btn.selected {
 		background: #674bb5;
 		color: #fff;
 		border-color: #1b1c19;

@@ -1,18 +1,20 @@
 export async function load({ locals }) {
 	const { supabase } = locals;
 	
-	// Ambil semua kegiatan, diurutkan dari yang terbaru
-	const { data: activities, error } = await supabase
+	// Ambil kegiatan halaman pertama (10 item), diurutkan dari yang terbaru
+	const { data: activities, count, error } = await supabase
 		.from('activities')
-		.select('*')
-		.order('date', { ascending: false });
+		.select('*', { count: 'exact' })
+		.order('date', { ascending: false })
+		.range(0, 9);
 		
 	if (error) {
 		console.error('Error fetching activities:', error);
-		return { activities: [] };
+		return { activities: [], totalItems: 0 };
 	}
 
 	return {
-		activities
+		activities,
+		totalItems: count
 	};
 }

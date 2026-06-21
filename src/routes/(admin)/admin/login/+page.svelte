@@ -1,6 +1,7 @@
 <script>
 	import { enhance } from '$app/forms';
 	import { page } from '$app/stores';
+	import Icon from '$lib/components/icons/Icon.svelte';
 
 	/** @type {import('./$types').ActionData} */
 	let { form } = $props();
@@ -33,10 +34,6 @@
 		href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
 		rel="stylesheet"
 	/>
-	<link
-		href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-		rel="stylesheet"
-	/>
 </svelte:head>
 
 <!-- Grid background pattern -->
@@ -53,7 +50,7 @@
 		<!-- Logo / Brand area -->
 		<div class="brand-area">
 			<div class="brand-badge">
-				<span class="material-symbols-outlined brand-icon">shield_person</span>
+				<Icon name="shield_person" size={28} color="#fff" />
 			</div>
 			<div class="brand-text">
 				<p class="brand-subtitle">PANEL ADMIN</p>
@@ -65,7 +62,7 @@
 		<div class="login-card">
 			<!-- Card header stripe -->
 			<div class="card-header">
-				<span class="material-symbols-outlined">lock</span>
+				<Icon name="lock" size={18} />
 				<span>Akses Terbatas</span>
 			</div>
 
@@ -79,7 +76,7 @@
 				<!-- Error alert -->
 				{#if errorMessage()}
 					<div class="error-alert" role="alert">
-						<span class="material-symbols-outlined error-icon">error</span>
+						<Icon name="error" size={20} color="#ba1a1a" class="error-icon" />
 						<p>{@html errorMessage()}</p>
 					</div>
 				{/if}
@@ -133,7 +130,7 @@
 
 				<!-- Info note -->
 				<div class="info-note">
-					<span class="material-symbols-outlined info-icon">info</span>
+					<Icon name="info" size={18} color="var(--primary-color)" class="info-icon" />
 					<p>
 						Hanya email yang terdaftar di <strong>whitelist admin</strong> yang dapat mengakses
 						dashboard. Hubungi Superadmin jika perlu ditambahkan.
@@ -144,27 +141,13 @@
 
 		<!-- Back to public site link -->
 		<a href="/" class="back-link" id="link-back-to-site">
-			<span class="material-symbols-outlined">arrow_back</span>
+			<Icon name="arrow_back" size={16} />
 			Kembali ke Halaman Utama
 		</a>
 	</main>
 </div>
 
 <style>
-	/* ─────────────────────────────────────────
-	   DESIGN TOKENS (Soft Neo-Brutalism)
-	───────────────────────────────────────── */
-	:global(*, *::before, *::after) {
-		box-sizing: border-box;
-	}
-
-	:global(body) {
-		margin: 0;
-		font-family: 'Space Grotesk', sans-serif;
-		background-color: #faf9f4;
-		color: #1b1c19;
-	}
-
 	/* ─────────────────────────────────────────
 	   LAYOUT
 	───────────────────────────────────────── */
@@ -176,17 +159,6 @@
 		padding: 24px 16px;
 		position: relative;
 		overflow: hidden;
-	}
-
-	.grid-bg {
-		position: fixed;
-		inset: 0;
-		z-index: 0;
-		background-image:
-			linear-gradient(to right, rgb(219, 218, 213) 1px, transparent 1px),
-			linear-gradient(rgb(219, 218, 213) 1px, transparent 1px);
-		background-size: 40px 40px;
-		pointer-events: none;
 	}
 
 	.login-main {
@@ -207,7 +179,7 @@
 		position: fixed;
 		font-family: 'Space Grotesk', sans-serif;
 		font-weight: 700;
-		border: 4px solid #1b1c19;
+		border: 4px solid var(--border-color);
 		pointer-events: none;
 		z-index: 1;
 		user-select: none;
@@ -219,9 +191,9 @@
 		font-size: 14px;
 		padding: 6px 12px;
 		background: #a78bfa;
-		color: #1b1c19;
+		color: var(--text-color);
 		transform: rotate(-8deg);
-		box-shadow: 4px 4px 0px 0px #1b1c19;
+		box-shadow: 4px 4px 0px 0px var(--shadow-color);
 		animation: float1 6s ease-in-out infinite;
 	}
 
@@ -233,7 +205,7 @@
 		background: #6aaeff;
 		color: #fff;
 		transform: rotate(5deg);
-		box-shadow: 4px 4px 0px 0px #1b1c19;
+		box-shadow: 4px 4px 0px 0px var(--shadow-color);
 		animation: float2 7s ease-in-out infinite;
 	}
 
@@ -242,10 +214,10 @@
 		right: 5%;
 		font-size: 13px;
 		padding: 6px 12px;
-		background: #faf9f4;
-		color: #1b1c19;
+		background: var(--bg-color);
+		color: var(--text-color);
 		transform: rotate(10deg);
-		box-shadow: 4px 4px 0px 0px #1b1c19;
+		box-shadow: 4px 4px 0px 0px var(--shadow-color);
 		animation: float3 8s ease-in-out infinite;
 	}
 
@@ -274,9 +246,9 @@
 	.brand-badge {
 		width: 56px;
 		height: 56px;
-		background: #674bb5;
-		border: 4px solid #1b1c19;
-		box-shadow: 5px 5px 0px 0px #1b1c19;
+		background: var(--primary-color);
+		border: 4px solid var(--border-color);
+		box-shadow: 5px 5px 0px 0px var(--shadow-color);
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -286,13 +258,7 @@
 
 	.brand-badge:hover {
 		transform: rotate(-3deg) translate(-2px, -2px);
-		box-shadow: 7px 7px 0px 0px #1b1c19;
-	}
-
-	.brand-icon {
-		font-size: 28px;
-		color: #fff;
-		font-variation-settings: 'FILL' 1;
+		box-shadow: 7px 7px 0px 0px var(--shadow-color);
 	}
 
 	.brand-text {
@@ -314,7 +280,7 @@
 		font-size: 28px;
 		font-weight: 700;
 		line-height: 1;
-		color: #1b1c19;
+		color: var(--text-color);
 		letter-spacing: -0.02em;
 	}
 
@@ -324,14 +290,14 @@
 	.login-card {
 		width: 100%;
 		background: #fff;
-		border: 4px solid #1b1c19;
-		box-shadow: 8px 8px 0px 0px #1b1c19;
+		border: 4px solid var(--border-color);
+		box-shadow: 8px 8px 0px 0px var(--shadow-color);
 		transition: box-shadow 0.2s, transform 0.2s;
 	}
 
 	.card-header {
-		background: #1b1c19;
-		color: #faf9f4;
+		background: var(--border-color);
+		color: var(--bg-color);
 		padding: 12px 24px;
 		display: flex;
 		align-items: center;
@@ -340,11 +306,6 @@
 		font-size: 13px;
 		letter-spacing: 0.1em;
 		text-transform: uppercase;
-	}
-
-	.card-header .material-symbols-outlined {
-		font-size: 18px;
-		font-variation-settings: 'FILL' 1;
 	}
 
 	.card-body {
@@ -383,9 +344,6 @@
 	}
 
 	.error-icon {
-		font-size: 20px;
-		color: #ba1a1a;
-		font-variation-settings: 'FILL' 1;
 		flex-shrink: 0;
 		margin-top: 1px;
 	}
@@ -408,13 +366,13 @@
 		justify-content: center;
 		gap: 12px;
 		padding: 16px 24px;
-		background: #faf9f4;
-		border: 4px solid #1b1c19;
-		box-shadow: 6px 6px 0px 0px #1b1c19;
+		background: var(--bg-color);
+		border: 4px solid var(--border-color);
+		box-shadow: 6px 6px 0px 0px var(--shadow-color);
 		font-family: 'Space Grotesk', sans-serif;
 		font-size: 16px;
 		font-weight: 700;
-		color: #1b1c19;
+		color: var(--text-color);
 		cursor: pointer;
 		transition:
 			transform 0.15s,
@@ -425,13 +383,13 @@
 
 	.google-btn:hover:not(:disabled) {
 		transform: translate(-2px, -2px);
-		box-shadow: 10px 10px 0px 0px #1b1c19;
-		background: #e8ddff;
+		box-shadow: 10px 10px 0px 0px var(--shadow-color);
+		background: var(--primary-light);
 	}
 
 	.google-btn:active:not(:disabled) {
 		transform: translate(4px, 4px);
-		box-shadow: 0px 0px 0px 0px #1b1c19;
+		box-shadow: 0px 0px 0px 0px var(--shadow-color);
 	}
 
 	.google-btn:disabled {
@@ -449,7 +407,7 @@
 	.spinner {
 		width: 20px;
 		height: 20px;
-		border: 3px solid #1b1c19;
+		border: 3px solid var(--border-color);
 		border-top-color: transparent;
 		border-radius: 50%;
 		animation: spin 0.7s linear infinite;
@@ -468,14 +426,11 @@
 		align-items: flex-start;
 		gap: 10px;
 		padding: 14px;
-		background: #efeee9;
+		background: var(--surface);
 		border: 2px solid #cac4d4;
 	}
 
 	.info-icon {
-		font-size: 18px;
-		color: #674bb5;
-		font-variation-settings: 'FILL' 1;
 		flex-shrink: 0;
 		margin-top: 1px;
 	}
@@ -488,7 +443,7 @@
 	}
 
 	.info-note p strong {
-		color: #1b1c19;
+		color: var(--text-color);
 	}
 
 	/* ─────────────────────────────────────────
@@ -511,13 +466,9 @@
 	}
 
 	.back-link:hover {
-		color: #674bb5;
-		border-color: #674bb5;
+		color: var(--primary-color);
+		border-color: var(--primary-color);
 		transform: translateX(-3px);
-	}
-
-	.back-link .material-symbols-outlined {
-		font-size: 16px;
 	}
 
 	/* ─────────────────────────────────────────

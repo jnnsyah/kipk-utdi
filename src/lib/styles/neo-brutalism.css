@@ -1,0 +1,177 @@
+/* Global Neo-Brutalism Variables & Base */
+:root {
+	--bg-color: #faf9f4;
+	--text-color: #1b1c19;
+	--primary-color: #674bb5;
+	--primary-hover: #5a42a0;
+	--primary-light: #e8ddff;
+	--primary-light-hover: #d1bfff;
+	--danger-color: #d32f2f;
+	--danger-hover: #b71c1c;
+	--border-color: #1b1c19;
+	--surface: #efeee9;
+	--surface-white: #fff;
+	
+	--border-width: 3px;
+	--shadow-offset: 4px;
+	--shadow-color: #1b1c19;
+}
+
+body {
+	font-family: 'Space Grotesk', sans-serif;
+	background: var(--bg-color);
+	color: var(--text-color);
+	margin: 0;
+	padding: 0;
+}
+
+*, *::before, *::after {
+	box-sizing: border-box;
+}
+
+/* Base Buttons */
+.btn-primary, .btn-secondary, .btn-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	padding: 10px 20px;
+	font-family: 'Space Grotesk', sans-serif;
+	font-weight: 700;
+	font-size: 15px;
+	cursor: pointer;
+	border: var(--border-width) solid var(--border-color);
+	box-shadow: var(--shadow-offset) var(--shadow-offset) 0px 0px var(--shadow-color);
+	transition: all 0.15s;
+	text-decoration: none;
+}
+
+.btn-primary {
+	background: var(--primary-color);
+	color: #fff;
+}
+
+.btn-primary:hover {
+	background: var(--primary-hover);
+	transform: translate(-2px, -2px);
+	box-shadow: 6px 6px 0px 0px var(--shadow-color);
+}
+
+.btn-primary:active {
+	transform: translate(2px, 2px);
+	box-shadow: 0px 0px 0px 0px var(--shadow-color);
+}
+
+.btn-secondary {
+	background: var(--surface);
+	color: var(--text-color);
+}
+
+.btn-secondary:hover {
+	background: #e4e2da;
+	transform: translate(-2px, -2px);
+	box-shadow: 6px 6px 0px 0px var(--shadow-color);
+}
+
+.btn-secondary:active {
+	transform: translate(2px, 2px);
+	box-shadow: 0px 0px 0px 0px var(--shadow-color);
+}
+
+.btn-danger {
+	background: var(--danger-color);
+	color: #fff;
+}
+
+.btn-danger:hover {
+	background: var(--danger-hover);
+}
+
+.btn-icon {
+	padding: 8px;
+	background: var(--surface-white);
+}
+
+.btn-icon:hover {
+	background: var(--primary-light);
+	color: var(--primary-color);
+}
+
+/* Modals */
+.modal-backdrop {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.6);
+	backdrop-filter: blur(4px);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 1000;
+	padding: 16px;
+}
+
+.modal-content {
+	background: var(--surface-white);
+	border: 4px solid var(--border-color);
+	box-shadow: 8px 8px 0px 0px var(--shadow-color);
+	width: 100%;
+	max-width: 600px;
+	max-height: 90vh;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+.modal-header {
+	padding: 16px 24px;
+	border-bottom: 3px solid var(--border-color);
+	background: var(--primary-light);
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.modal-header h2 {
+	margin: 0;
+	font-size: 20px;
+}
+
+.modal-body {
+	padding: 24px;
+	overflow-y: auto;
+}
+
+.modal-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 12px;
+	margin-top: 24px;
+}
+
+/* Badges */
+.badge {
+	font-size: 11px;
+	font-weight: 700;
+	padding: 4px 8px;
+	background: var(--border-color);
+	color: #fff;
+	letter-spacing: 0.05em;
+	display: inline-block;
+}
+
+.badge-seminar { background: #674bb5; }
+.badge-workshop { background: #0288d1; }
+.badge-training { background: #e64a19; }
+.badge-sosialisasi { background: #388e3c; }
+
+/* Grid Background */
+.grid-bg {
+	position: fixed;
+	inset: 0;
+	z-index: 0;
+	background-image:
+		linear-gradient(to right, rgb(219, 218, 213) 1px, transparent 1px),
+		linear-gradient(rgb(219, 218, 213) 1px, transparent 1px);
+	background-size: 40px 40px;
+	pointer-events: none;
+}

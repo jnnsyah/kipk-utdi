@@ -1,5 +1,8 @@
 <script>
 	import { enhance } from '$app/forms';
+	import Icon from '$lib/components/icons/Icon.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
+	import NavCard from '$lib/components/ui/NavCard.svelte';
 
 	/** @type {import('./$types').PageData} */
 	let { data } = $props();
@@ -17,10 +20,6 @@
 		href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
 		rel="stylesheet"
 	/>
-	<link
-		href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-		rel="stylesheet"
-	/>
 </svelte:head>
 
 <div class="dashboard-page">
@@ -30,7 +29,7 @@
 		<!-- Header -->
 		<header class="dash-header">
 			<div class="dash-brand">
-				<span class="material-symbols-outlined dash-brand-icon">shield_person</span>
+				<Icon name="shield_person" size={28} color="var(--primary-color)" />
 				<div>
 					<p class="dash-brand-sub">PANEL ADMIN</p>
 					<p class="dash-brand-name">KIP-K UTDI</p>
@@ -53,10 +52,10 @@
 					<p class="user-email">{email}</p>
 				</div>
 				<form method="POST" action="/admin/login?/logout" use:enhance>
-					<button type="submit" class="logout-btn" id="btn-logout" title="Keluar">
-						<span class="material-symbols-outlined">logout</span>
+					<Button type="submit" variant="secondary" id="btn-logout" title="Keluar">
+						<Icon name="logout" size={18} />
 						<span class="logout-label">Keluar</span>
-					</button>
+					</Button>
 				</form>
 			</div>
 		</header>
@@ -72,90 +71,58 @@
 				</p>
 			</div>
 			<div class="welcome-deco" aria-hidden="true">
-				<span class="material-symbols-outlined">admin_panel_settings</span>
+				<Icon name="admin_panel_settings" size={48} color="rgba(255, 255, 255, 0.6)" />
 			</div>
 		</div>
 
 		<!-- Quick Nav Cards -->
 		<section class="nav-grid">
-			<a href="/admin/kegiatan" class="nav-card nav-card--purple" id="link-nav-kegiatan">
-				<div class="nav-card-icon">
-					<span class="material-symbols-outlined">event</span>
-				</div>
-				<div>
-					<p class="nav-card-label">Kegiatan</p>
-					<p class="nav-card-desc">Tambah, edit, & hapus kegiatan</p>
-				</div>
-				<span class="material-symbols-outlined nav-card-arrow">arrow_forward</span>
-			</a>
-
-			<a href="/admin/konten" class="nav-card nav-card--blue" id="link-nav-konten">
-				<div class="nav-card-icon">
-					<span class="material-symbols-outlined">article</span>
-				</div>
-				<div>
-					<p class="nav-card-label">Visi / Misi / Tujuan</p>
-					<p class="nav-card-desc">Update konten halaman tentang</p>
-				</div>
-				<span class="material-symbols-outlined nav-card-arrow">arrow_forward</span>
-			</a>
-
-			<a href="/admin/faq" class="nav-card nav-card--gray" id="link-nav-faq">
-				<div class="nav-card-icon">
-					<span class="material-symbols-outlined">quiz</span>
-				</div>
-				<div>
-					<p class="nav-card-label">FAQ</p>
-					<p class="nav-card-desc">Kelola pertanyaan & jawaban</p>
-				</div>
-				<span class="material-symbols-outlined nav-card-arrow">arrow_forward</span>
-			</a>
-
-			<a href="/admin/whitelist" class="nav-card nav-card--black" id="link-nav-whitelist">
-				<div class="nav-card-icon">
-					<span class="material-symbols-outlined">manage_accounts</span>
-				</div>
-				<div>
-					<p class="nav-card-label">Whitelist Admin</p>
-					<p class="nav-card-desc">Kelola akses email admin</p>
-				</div>
-				<span class="material-symbols-outlined nav-card-arrow">arrow_forward</span>
-			</a>
+			<NavCard 
+				href="/admin/kegiatan" 
+				id="link-nav-kegiatan"
+				variant="purple"
+				iconName="event"
+				label="Kegiatan"
+				desc="Tambah, edit, & hapus kegiatan"
+			/>
+			<NavCard 
+				href="/admin/konten" 
+				id="link-nav-konten"
+				variant="blue"
+				iconName="article"
+				label="Visi / Misi / Tujuan"
+				desc="Update konten halaman tentang"
+			/>
+			<NavCard 
+				href="/admin/faq" 
+				id="link-nav-faq"
+				variant="green"
+				iconName="quiz"
+				label="FAQ"
+				desc="Kelola pertanyaan & jawaban"
+			/>
+			<NavCard 
+				href="/admin/whitelist" 
+				id="link-nav-whitelist"
+				variant="red"
+				iconName="manage_accounts"
+				label="Whitelist Admin"
+				desc="Kelola akses email admin"
+			/>
 		</section>
 
 		<!-- Status note -->
 		<div class="status-note">
-			<span class="material-symbols-outlined">check_circle</span>
+			<Icon name="check_circle" size={16} color="var(--primary-color)" />
 			<span>Login sebagai <strong>{email}</strong> · Sesi aktif</span>
 		</div>
 	</div>
 </div>
 
 <style>
-	:global(*, *::before, *::after) {
-		box-sizing: border-box;
-	}
-	:global(body) {
-		margin: 0;
-		font-family: 'Space Grotesk', sans-serif;
-		background: #faf9f4;
-		color: #1b1c19;
-	}
-
 	.dashboard-page {
 		min-height: 100vh;
 		position: relative;
-	}
-
-	.grid-bg {
-		position: fixed;
-		inset: 0;
-		z-index: 0;
-		background-image:
-			linear-gradient(to right, rgb(219, 218, 213) 1px, transparent 1px),
-			linear-gradient(rgb(219, 218, 213) 1px, transparent 1px);
-		background-size: 40px 40px;
-		pointer-events: none;
 	}
 
 	.dashboard-container {
@@ -171,9 +138,9 @@
 
 	/* Header */
 	.dash-header {
-		background: #fff;
-		border: 4px solid #1b1c19;
-		box-shadow: 6px 6px 0px 0px #1b1c19;
+		background: var(--surface-white);
+		border: 4px solid var(--border-color);
+		box-shadow: 6px 6px 0px 0px var(--shadow-color);
 		padding: 16px 24px;
 		display: flex;
 		align-items: center;
@@ -186,12 +153,6 @@
 		display: flex;
 		align-items: center;
 		gap: 12px;
-	}
-
-	.dash-brand-icon {
-		font-size: 28px;
-		color: #674bb5;
-		font-variation-settings: 'FILL' 1;
 	}
 
 	.dash-brand-sub {
@@ -219,21 +180,16 @@
 	.user-avatar {
 		width: 40px;
 		height: 40px;
-		border: 3px solid #1b1c19;
+		border: 3px solid var(--border-color);
 		border-radius: 0;
 		object-fit: cover;
 	}
 
 	.user-avatar-placeholder {
-		background: #efeee9;
+		background: var(--surface);
 		display: flex;
 		align-items: center;
 		justify-content: center;
-	}
-
-	.user-avatar-placeholder .material-symbols-outlined {
-		font-size: 22px;
-		color: #7a7583;
 	}
 
 	.user-info {
@@ -254,40 +210,11 @@
 		color: #7a7583;
 	}
 
-	.logout-btn {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-		padding: 8px 14px;
-		background: #faf9f4;
-		border: 2px solid #1b1c19;
-		box-shadow: 3px 3px 0px 0px #1b1c19;
-		font-family: 'Space Grotesk', sans-serif;
-		font-size: 13px;
-		font-weight: 600;
-		cursor: pointer;
-		transition: transform 0.15s, box-shadow 0.15s;
-	}
-
-	.logout-btn:hover {
-		transform: translate(-1px, -1px);
-		box-shadow: 5px 5px 0px 0px #1b1c19;
-	}
-
-	.logout-btn:active {
-		transform: translate(2px, 2px);
-		box-shadow: 0px 0px 0px 0px #1b1c19;
-	}
-
-	.logout-btn .material-symbols-outlined {
-		font-size: 18px;
-	}
-
 	/* Welcome banner */
 	.welcome-banner {
-		background: #674bb5;
-		border: 4px solid #1b1c19;
-		box-shadow: 8px 8px 0px 0px #1b1c19;
+		background: var(--primary-color);
+		border: 4px solid var(--border-color);
+		box-shadow: 8px 8px 0px 0px var(--shadow-color);
 		padding: 32px;
 		display: flex;
 		align-items: center;
@@ -298,8 +225,8 @@
 
 	.welcome-tag {
 		display: inline-block;
-		background: #1b1c19;
-		color: #faf9f4;
+		background: var(--text-color);
+		color: var(--surface-white);
 		font-size: 11px;
 		font-weight: 700;
 		letter-spacing: 0.15em;
@@ -334,12 +261,6 @@
 		justify-content: center;
 	}
 
-	.welcome-deco .material-symbols-outlined {
-		font-size: 48px;
-		color: rgba(255, 255, 255, 0.6);
-		font-variation-settings: 'FILL' 1;
-	}
-
 	/* Nav cards grid */
 	.nav-grid {
 		display: grid;
@@ -347,87 +268,21 @@
 		gap: 16px;
 	}
 
-	.nav-card {
-		display: flex;
-		align-items: center;
-		gap: 16px;
-		padding: 20px;
-		border: 4px solid #1b1c19;
-		box-shadow: 5px 5px 0px 0px #1b1c19;
-		text-decoration: none;
-		color: #1b1c19;
-		transition: transform 0.15s, box-shadow 0.15s;
-	}
-
-	.nav-card:hover {
-		transform: translate(-2px, -2px);
-		box-shadow: 9px 9px 0px 0px #1b1c19;
-	}
-
-	.nav-card:active {
-		transform: translate(3px, 3px);
-		box-shadow: 0px 0px 0px 0px #1b1c19;
-	}
-
-	.nav-card--purple { background: #e8ddff; }
-	.nav-card--blue   { background: #d3e4ff; }
-	.nav-card--gray   { background: #efeee9; }
-	.nav-card--black  { background: #1b1c19; color: #faf9f4; }
-
-	.nav-card-icon {
-		width: 44px;
-		height: 44px;
-		background: rgba(0,0,0,0.1);
-		border: 2px solid currentColor;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		flex-shrink: 0;
-	}
-
-	.nav-card-icon .material-symbols-outlined {
-		font-size: 22px;
-		font-variation-settings: 'FILL' 1;
-	}
-
-	.nav-card-label {
-		margin: 0 0 3px;
-		font-size: 15px;
-		font-weight: 700;
-	}
-
-	.nav-card-desc {
-		margin: 0;
-		font-size: 12px;
-		opacity: 0.7;
-	}
-
-	.nav-card-arrow {
-		margin-left: auto;
-		font-size: 20px;
-		flex-shrink: 0;
-	}
-
-	/* Status note */
 	.status-note {
 		display: flex;
 		align-items: center;
+		justify-content: center;
 		gap: 8px;
-		font-size: 12px;
-		color: #7a7583;
-		padding: 12px 16px;
-		background: #fff;
-		border: 2px solid #cac4d4;
-	}
-
-	.status-note .material-symbols-outlined {
-		font-size: 16px;
-		color: #674bb5;
-		font-variation-settings: 'FILL' 1;
+		background: #faf9f4;
+		border: 3px solid #1b1c19;
+		padding: 12px 24px;
+		width: max-content;
+		margin: 0 auto;
+		font-size: 13px;
 	}
 
 	.status-note strong {
-		color: #1b1c19;
+		color: var(--text-color);
 	}
 
 	@media (max-width: 600px) {

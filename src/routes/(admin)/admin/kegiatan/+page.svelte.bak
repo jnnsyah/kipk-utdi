@@ -1,0 +1,1288 @@
+<script>
+	import { enhance } from '$app/forms';
+	import { onMount } from 'svelte';
+	import { clickOutside } from '$lib/utils/clickOutside.js';
+	import { fly } from 'svelte/transition';
+	import Icon from '$lib/components/icons/Icon.svelte';
+	import { compressImageToWebP } from '$lib/utils/imageCompressor.js';
+	import { createBrowserClient } from '@supabase/ssr';
+	import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY } from '$env/static/public';
+	import CustomSelect from '$lib/components/CustomSelect.svelte';
+	import CustomDatePicker from '$lib/components/CustomDatePicker.svelte';
+
+	/** @type {import('./$types').PageData} */
+	let { data } = $props();
+
+	let supabase;
+	onMount(() => {
+		supabase = createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY);
+	});
+
+	let activities = $state(data.activities ?? []);
+	
+	let toastMessage = $state('');
+	let toastType = $state('error');
+	let currentPage = $state(1);
+	let totalItems = $state(data.totalItems ?? 0);
+	const itemsPerPage = 10;
+	let totalPages = $derived(Math.ceil(totalItems / itemsPerPage) || 1);
+
+	async function loadActivities() {
+		const { data: actData, count, error } = await supabase
+			.from('activities')
+			.select('*', { count: 'exact' })
+			.order('date', { ascending: false })
+			.range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1);
+			
+		if (!error && actData) {
+			activities = actData;
+			totalItems = count || actData.length;
+		}
+	}
+
+	function showToast(message, type = 'error') {
+		toastMessage = message;
+		toastType = type;
+		setTimeout(() => {
+			toastMessage = '';
+		}, 5000);
+	}
+
+	let isAdding = $state(false);
+	let title = $state('');
+	let tag = $state('SEMINAR');
+	let date = $state('');
+	let location = $state('');
+	let academic_year = $state(new Date().getFullYear());
+	let description = $state('');
+	let files = $state([]);
+	let isUploading = $state(false);
+	let uploadProgress = $state(0);
+	
+	let isEditing = $state(false);
+	let currentActivityId = $state(null);
+	let isViewing = $state(false);
+	let currentActivity = $state(null);
+	let isDeleting = $state(false);
+	let activityToDelete = $state(null);
+	let existingPhotos = $state([]);
+	let photosToDelete = $state([]);
+	let viewPhotos = $state([]);
+	let activePhotoIndex = $state(0);
+	let pauseAutoSlide = $state(false);
+	let slideTimeout = null;
+
+	// Tag Options
+	const tagOptions = [
+		{ value: 'SEMINAR', label: 'SEMINAR' },
+		{ value: 'WORKSHOP', label: 'WORKSHOP' },
+		{ value: 'TRAINING', label: 'TRAINING' },
+		{ value: 'SOSIALISASI', label: 'SOSIALISASI' },
+		{ value: 'LAINNYA', label: 'LAINNYA' }
+	];
+
+	// Multi upload helpers
+	let dragOver = $state(false);
+
+	function handleDrop(e) {
+		e.preventDefault();
+		dragOver = false;
+		if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+			const newFiles = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+			files = [...files, ...newFiles];
+		}
+	}
+
+	function handleFileSelect(e) {
+		if (e.target.files && e.target.files.length > 0) {
+			const newFiles = Array.from(e.target.files);
+			files = [...files, ...newFiles];
+		}
+	}
+
+	function removeFile(index) {
+		files = files.filter((_, i) => i !== index);
+	}
+
+	function removeExistingPhoto(index) {
+		const photo = existingPhotos[index];
+		photosToDelete.push(photo);
+		existingPhotos = existingPhotos.filter((_, i) => i !== index);
+	}
+
+	async function handleUploadAndSubmit(event) {
+		if (event) event.preventDefault();
+		
+		if (!title.trim()) {
+			showToast('Judul kegiatan tidak boleh kosong.', 'error');
+			return;
+		}
+		if (!date) {
+			showToast('Tanggal kegiatan belum dipilih.', 'error');
+			return;
+		}
+		if (!supabase) {
+			showToast('Klien database belum siap. Coba muat ulang halaman.', 'error');
+			return;
+		}
+
+		isUploading = true;
+		uploadProgress = 0;
+
+		try {
+			let activity_id = currentActivityId;
+
+			if (isEditing && activity_id) {
+				const { error: updateError } = await supabase
+					.from('activities')
+					.update({
+						title,
+						tag,
+						date,
+						location,
+						academic_year: String(academic_year),
+						description
+					})
+					.eq('id', activity_id);
+				if (updateError) throw updateError;
+			} else {
+				const { data: activityData, error: activityError } = await supabase
+					.from('activities')
+					.insert([{
+						title,
+						tag,
+						date,
+						location,
+						academic_year: String(academic_year),
+						description
+					}])
+					.select()
+					.single();
+
+				if (activityError) throw activityError;
+				activity_id = activityData.id;
+			}
+
+			// Handle photo deletions
+			if (photosToDelete.length > 0) {
+				const storagePaths = photosToDelete.map(p => p.storage_path);
+				const photoIds = photosToDelete.map(p => p.id);
+				
+				// Delete from storage
+				const { error: storageError } = await supabase.storage
+					.from('dokumentasi-kegiatan')
+					.remove(storagePaths);
+					
+				if (storageError) console.error("Gagal menghapus file storage", storageError);
+
+				// Delete from database
+				const { error: dbDelError } = await supabase
+					.from('activity_photos')
+					.delete()
+					.in('id', photoIds);
+					
+				if (dbDelError) console.error("Gagal menghapus photo DB record", dbDelError);
+			}
+
+			// Handle new photos
+			if (files.length > 0) {
+				for (let i = 0; i < files.length; i++) {
+					const originalFile = files[i];
+					const webpFile = await compressImageToWebP(originalFile);
+					const filePath = `${activity_id}/${Date.now()}_${i}.webp`;
+					
+					const { error: uploadError } = await supabase.storage
+						.from('dokumentasi-kegiatan')
+						.upload(filePath, webpFile);
+
+					if (uploadError) throw uploadError;
+
+					const { error: photoDbError } = await supabase
+						.from('activity_photos')
+						.insert([{
+							activity_id,
+							storage_path: filePath,
+							order: i
+						}]);
+
+					if (photoDbError) throw photoDbError;
+					
+					uploadProgress = Math.round(((i + 1) / files.length) * 100);
+				}
+			}
+
+			showToast(isEditing ? 'Kegiatan berhasil diperbarui!' : 'Kegiatan berhasil ditambahkan!', 'success');
+			setTimeout(() => {
+				window.location.reload();
+			}, 1000);
+
+		} catch (e) {
+			console.error('Submit error:', e);
+			showToast(`Gagal menyimpan: ${e.message || 'Kesalahan tidak diketahui'}`, 'error');
+			isUploading = false;
+		}
+	}
+
+	function promptDelete(act) {
+		activityToDelete = act;
+		isDeleting = true;
+	}
+
+	async function handleDelete() {
+		if (!activityToDelete) return;
+		try {
+			const { error } = await supabase.from('activities').delete().eq('id', activityToDelete.id);
+			if (error) throw error;
+			showToast('Kegiatan berhasil dihapus!', 'success');
+			isDeleting = false;
+			activityToDelete = null;
+			setTimeout(() => window.location.reload(), 1000);
+		} catch (e) {
+			showToast(`Gagal menghapus: ${e.message}`, 'error');
+			isDeleting = false;
+		}
+	}
+
+	async function openEdit(act) {
+		resetForm();
+		isAdding = true;
+		isEditing = true;
+		currentActivityId = act.id;
+		title = act.title;
+		tag = act.tag;
+		date = act.date;
+		location = act.location;
+		academic_year = parseInt(act.academic_year) || new Date().getFullYear();
+		description = act.description;
+
+		try {
+			const { data: photos, error } = await supabase
+				.from('activity_photos')
+				.select('*')
+				.eq('activity_id', act.id)
+				.order('order', { ascending: true });
+				
+			if (!error && photos) {
+				existingPhotos = photos;
+			}
+		} catch (err) {
+			console.error("Gagal memuat foto", err);
+		}
+	}
+
+	async function openView(act) {
+		currentActivity = act;
+		isViewing = true;
+		viewPhotos = [];
+		activePhotoIndex = 0;
+
+		try {
+			const { data: photos, error } = await supabase
+				.from('activity_photos')
+				.select('*')
+				.eq('activity_id', act.id)
+				.order('order', { ascending: true });
+				
+			if (!error && photos) {
+				viewPhotos = photos;
+			}
+		} catch (err) {
+			console.error("Gagal memuat foto", err);
+		}
+	}
+
+	function slidePhoto(dir, isAuto = false) {
+		if (viewPhotos.length === 0) return;
+		activePhotoIndex = (activePhotoIndex + dir + viewPhotos.length) % viewPhotos.length;
+
+		if (!isAuto) {
+			pauseAutoSlide = true;
+			if (slideTimeout) clearTimeout(slideTimeout);
+			slideTimeout = setTimeout(() => {
+				pauseAutoSlide = false;
+			}, 5000);
+		}
+	}
+
+	$effect(() => {
+		let interval;
+		if (isViewing && viewPhotos.length > 1 && !pauseAutoSlide) {
+			interval = setInterval(() => {
+				slidePhoto(1, true);
+			}, 3000);
+		}
+		return () => {
+			if (interval) clearInterval(interval);
+		};
+	});
+
+	function resetForm() {
+		isAdding = false;
+		isEditing = false;
+		currentActivityId = null;
+		title = '';
+		date = '';
+		location = '';
+		academic_year = new Date().getFullYear();
+		description = '';
+		files = [];
+		existingPhotos = [];
+		photosToDelete = [];
+		uploadProgress = 0;
+	}
+
+	function toggleAddForm() {
+		if (isAdding) {
+			isAdding = false;
+		} else {
+			resetForm();
+			isAdding = true;
+		}
+	}
+</script>
+
+<svelte:head>
+	<title>Kelola Kegiatan — Admin KIP-K UTDI</title>
+</svelte:head>
+
+<div class="grid-bg" aria-hidden="true"></div>
+
+<div class="page-container">
+	{#if toastMessage}
+		<div class="toast toast-{toastType}">
+			{#if toastType === 'success'}
+				<Icon name="check_circle" size={20} />
+			{:else}
+				<Icon name="error" size={20} />
+			{/if}
+			<span>{toastMessage}</span>
+		</div>
+	{/if}
+
+	<div class="back-container">
+		<a href="/admin/dashboard" class="back-link">
+			<Icon name="arrow_back" size={18} />
+			Kembali ke Dashboard
+		</a>
+	</div>
+
+	<header class="page-header">
+		<h1 class="page-title">Kelola Kegiatan</h1>
+		<div class="header-actions">
+			{#if isAdding}
+				<button class="btn-secondary" onclick={toggleAddForm}>
+					<Icon name="close" size={20} />
+					Batal
+				</button>
+			{:else}
+				<button class="btn-primary" onclick={toggleAddForm}>
+					<Icon name="add" size={20} />
+					Tambah Kegiatan
+				</button>
+			{/if}
+		</div>
+	</header>
+
+	{#if isAdding}
+		<section class="form-section">
+			<h2>{isEditing ? 'Edit Kegiatan' : 'Tambah Kegiatan Baru'}</h2>
+			<form onsubmit={handleUploadAndSubmit} class="crud-form">
+				<div class="form-group">
+					<label for="title">Judul Kegiatan</label>
+					<input type="text" id="title" bind:value={title} required />
+				</div>
+
+				<div class="form-row">
+					<div class="form-group" style="position: relative; z-index: 20;">
+						<label for="tag">Kategori (Tag)</label>
+						<CustomSelect bind:value={tag} options={tagOptions} placeholder="Pilih Kategori" />
+					</div>
+
+					<div class="form-group" style="position: relative; z-index: 10;">
+						<label for="date">Tanggal</label>
+						<CustomDatePicker bind:value={date} placeholder="Pilih Tanggal Kegiatan" />
+					</div>
+				</div>
+
+				<div class="form-row">
+					<div class="form-group">
+						<label for="location">Lokasi</label>
+						<input type="text" id="location" bind:value={location} />
+					</div>
+
+					<div class="form-group">
+						<label for="academic_year">Tahun Kegiatan</label>
+						<input type="number" id="academic_year" bind:value={academic_year} required min="2000" max="2100" />
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label for="description">Deskripsi (Mendukung HTML)</label>
+					<textarea id="description" bind:value={description} rows="4"></textarea>
+				</div>
+
+				<div class="form-group">
+					<label>Upload Foto (Multi-upload)</label>
+					<!-- svelte-ignore a11y_no_static_element_interactions -->
+					<div 
+						class="file-upload-zone {dragOver ? 'drag-over' : ''}"
+						ondragover={(e) => { e.preventDefault(); dragOver = true; }}
+						ondragleave={() => dragOver = false}
+						ondrop={handleDrop}
+					>
+						<label for="photos" class="file-upload-label">
+							<div class="upload-zone-content">
+								<div class="upload-icon-wrapper">
+									<Icon name="upload" size={40} />
+								</div>
+								<p class="upload-text">Klik untuk memilih atau tarik file foto ke area ini</p>
+							</div>
+						</label>
+						<input 
+							type="file" 
+							id="photos" 
+							accept="image/*" 
+							multiple 
+							class="hidden-file-input"
+							onchange={handleFileSelect}
+						/>
+					</div>
+					
+					{#if existingPhotos.length > 0 || files.length > 0}
+						<div class="file-preview-list">
+							{#each existingPhotos as photo, index}
+								<div class="file-preview-item">
+									<div class="file-info">
+										<img src="{PUBLIC_SUPABASE_URL}/storage/v1/object/public/dokumentasi-kegiatan/{photo.storage_path}" class="preview-thumbnail" alt="Preview" />
+										<span class="file-name" title={photo.storage_path}>Foto Tersimpan {index + 1}</span>
+									</div>
+									<button type="button" class="btn-remove-file" onclick={(e) => { e.stopPropagation(); removeExistingPhoto(index); }} title="Hapus foto ini">
+										<Icon name="close" size={16} strokeWidth={2.5} />
+									</button>
+								</div>
+							{/each}
+							{#each files as file, index}
+								<div class="file-preview-item">
+									<div class="file-info">
+										<img src={URL.createObjectURL(file)} class="preview-thumbnail" alt="Preview" />
+										<span class="file-name" title={file.name}>{file.name}</span>
+									</div>
+									<button type="button" class="btn-remove-file" onclick={(e) => { e.stopPropagation(); removeFile(index); }} title="Hapus file">
+										<Icon name="close" size={16} strokeWidth={2.5} />
+									</button>
+								</div>
+							{/each}
+						</div>
+					{/if}
+				</div>
+
+				<div class="form-actions">
+					<button type="submit" class="btn-submit" disabled={isUploading}>
+						{#if isUploading}
+							Menyimpan... {uploadProgress > 0 ? `(${uploadProgress}%)` : ''}
+						{:else}
+							{isEditing ? 'Simpan Perubahan' : 'Simpan Kegiatan'}
+						{/if}
+					</button>
+				</div>
+			</form>
+		</section>
+	{/if}
+
+	<section class="data-section">
+		<h2>Daftar Kegiatan</h2>
+		{#if activities.length === 0}
+			<p class="empty-state">Belum ada kegiatan yang ditambahkan.</p>
+		{:else}
+			<div class="table-container">
+				<table class="data-table">
+					<thead>
+						<tr>
+							<th>Judul</th>
+							<th>Kategori</th>
+							<th>Tanggal</th>
+							<th>Tahun Kegiatan</th>
+							<th>Aksi</th>
+						</tr>
+					</thead>
+					<tbody>
+						{#each activities as act}
+							<tr>
+								<td><strong>{act.title}</strong></td>
+								<td><span class="badge badge-{act.tag.toLowerCase()}">{act.tag}</span></td>
+								<td>{act.date}</td>
+								<td>{act.academic_year}</td>
+								<td>
+									<div class="table-actions">
+										<button class="action-btn" title="Lihat" onclick={() => openView(act)}>
+											<Icon name="visibility" size={18} />
+										</button>
+										<button class="action-btn" title="Edit" onclick={() => openEdit(act)}>
+											<Icon name="edit" size={18} />
+										</button>
+										<button class="action-btn action-btn-danger" title="Hapus" onclick={() => promptDelete(act)}>
+											<Icon name="delete" size={18} />
+										</button>
+									</div>
+								</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
+
+			{#if totalPages > 1}
+				<div class="pagination">
+					<button 
+						class="btn-page" 
+						disabled={currentPage === 1} 
+						onclick={() => { currentPage--; loadActivities(); }}
+					>
+						<Icon name="chevron_left" size={20} />
+					</button>
+					<span class="page-info">Halaman {currentPage} dari {totalPages}</span>
+					<button 
+						class="btn-page" 
+						disabled={currentPage === totalPages} 
+						onclick={() => { currentPage++; loadActivities(); }}
+					>
+						<Icon name="chevron_right" size={20} />
+					</button>
+				</div>
+			{/if}
+		{/if}
+	</section>
+
+	{#if isViewing && currentActivity}
+		<div class="modal-backdrop" onclick={() => isViewing = false}>
+			<div class="modal-content" onclick={(e) => e.stopPropagation()}>
+				<div class="modal-header">
+					<h2>Detail Kegiatan</h2>
+					<button class="btn-icon" onclick={() => isViewing = false}>
+						<Icon name="close" size={24} />
+					</button>
+				</div>
+				<div class="modal-body">
+					{#if viewPhotos.length > 0}
+						<div class="photo-slider-wrapper">
+							{#if viewPhotos.length > 1}
+								<button class="slider-btn" onclick={() => slidePhoto(-1)}>
+									<Icon name="arrow_back" size={20} />
+								</button>
+							{/if}
+							
+							<div class="photo-frame">
+								{#key activePhotoIndex}
+									<div 
+										class="slider-img-wrapper"
+										in:fly={{x: 400, duration: 400}}
+										out:fly={{x: -400, duration: 400}}
+									>
+										<img 
+											src="{PUBLIC_SUPABASE_URL}/storage/v1/object/public/dokumentasi-kegiatan/{viewPhotos[activePhotoIndex].storage_path}" 
+											alt="Dokumentasi" 
+											class="slider-img" 
+										/>
+									</div>
+								{/key}
+								
+								{#if viewPhotos.length > 1}
+									<div class="slider-counter">
+										{activePhotoIndex + 1} / {viewPhotos.length}
+									</div>
+								{/if}
+							</div>
+							
+							{#if viewPhotos.length > 1}
+								<button class="slider-btn" onclick={() => slidePhoto(1)}>
+									<Icon name="arrow_forward" size={20} />
+								</button>
+							{/if}
+						</div>
+					{/if}
+					<h3>{currentActivity.title}</h3>
+					<div class="meta-info">
+						<span class="badge badge-{currentActivity.tag.toLowerCase()}">{currentActivity.tag}</span>
+						<span><Icon name="event" size={16} /> {currentActivity.date}</span>
+						<span><Icon name="location_on" size={16} /> {currentActivity.location}</span>
+					</div>
+					<div class="desc-content">
+						{@html currentActivity.description || '<em>Tidak ada deskripsi.</em>'}
+					</div>
+				</div>
+			</div>
+		</div>
+	{/if}
+
+	{#if isDeleting && activityToDelete}
+		<div class="modal-backdrop" onclick={() => isDeleting = false}>
+			<div class="modal-content delete-modal" onclick={(e) => e.stopPropagation()}>
+				<div class="modal-header">
+					<h2>Konfirmasi Hapus</h2>
+					<button class="btn-icon" onclick={() => isDeleting = false}>
+						<Icon name="close" size={24} />
+					</button>
+				</div>
+				<div class="modal-body">
+					<p>Apakah Anda yakin ingin menghapus kegiatan <strong>"{activityToDelete.title}"</strong> beserta semua foto dokumentasinya?</p>
+					<p class="text-danger">Tindakan ini tidak dapat dibatalkan.</p>
+					
+					<div class="modal-actions">
+						<button class="btn-secondary" onclick={() => isDeleting = false}>Batal</button>
+						<button class="btn-primary btn-danger" onclick={handleDelete}>Hapus Kegiatan</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	{/if}
+</div>
+
+<style>
+	.grid-bg {
+		position: fixed;
+		inset: 0;
+		z-index: 0;
+		background-image:
+			linear-gradient(to right, rgb(219, 218, 213) 1px, transparent 1px),
+			linear-gradient(rgb(219, 218, 213) 1px, transparent 1px);
+		background-size: 40px 40px;
+		pointer-events: none;
+	}
+
+	.page-container {
+		position: relative;
+		z-index: 1;
+		max-width: 960px;
+		margin: 0 auto;
+		padding: 24px 16px 48px;
+		display: flex;
+		flex-direction: column;
+		gap: 32px;
+	}
+
+	.page-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 16px;
+		flex-wrap: wrap;
+	}
+
+	.back-container {
+		margin-bottom: -16px;
+	}
+
+	.back-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		font-size: 14px;
+		color: #1b1c19;
+		background: #efeee9;
+		text-decoration: none;
+		font-weight: 700;
+		padding: 6px 16px;
+		border: 2px solid #1b1c19;
+		box-shadow: 3px 3px 0px 0px #1b1c19;
+		transition: all 0.15s;
+	}
+
+	.back-link:hover {
+		transform: translate(-2px, -2px);
+		box-shadow: 5px 5px 0px 0px #1b1c19;
+		background: #e8ddff;
+		color: #674bb5;
+	}
+
+	.back-link:active {
+		transform: translate(2px, 2px);
+		box-shadow: 0px 0px 0px 0px #1b1c19;
+	}
+
+	.page-title {
+		margin: 0;
+		font-size: 32px;
+		font-weight: 700;
+		letter-spacing: -0.02em;
+		background: #e8ddff;
+		display: inline-block;
+		padding: 10px 24px;
+		border: 4px solid #1b1c19;
+		box-shadow: 6px 6px 0px 0px #1b1c19;
+	}
+
+	.btn-primary {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		background: #674bb5;
+		color: #fff;
+		border: 3px solid #1b1c19;
+		box-shadow: 4px 4px 0px 0px #1b1c19;
+		padding: 10px 20px;
+		font-family: inherit;
+		font-weight: 700;
+		font-size: 15px;
+		cursor: pointer;
+		transition: transform 0.15s, box-shadow 0.15s;
+	}
+
+	.btn-primary:hover {
+		transform: translate(-2px, -2px);
+		box-shadow: 6px 6px 0px 0px #1b1c19;
+	}
+
+	.btn-primary:active {
+		transform: translate(2px, 2px);
+		box-shadow: 0px 0px 0px 0px #1b1c19;
+	}
+
+	.btn-secondary {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		background: #efeee9;
+		color: #1b1c19;
+		border: 3px solid #1b1c19;
+		box-shadow: 4px 4px 0px 0px #1b1c19;
+		padding: 10px 20px;
+		font-family: inherit;
+		font-weight: 700;
+		font-size: 15px;
+		cursor: pointer;
+		transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+	}
+
+	.btn-secondary:hover {
+		background: #e8ddff;
+		transform: translate(-2px, -2px);
+		box-shadow: 6px 6px 0px 0px #1b1c19;
+	}
+
+	.btn-secondary:active {
+		transform: translate(2px, 2px);
+		box-shadow: 0px 0px 0px 0px #1b1c19;
+	}
+
+	.form-section {
+		background: #fff;
+		border: 4px solid #1b1c19;
+		box-shadow: 6px 6px 0px 0px #1b1c19;
+		padding: 24px;
+	}
+
+	.form-section h2 {
+		margin: 0 0 20px;
+		font-size: 20px;
+	}
+
+	.crud-form {
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+	}
+
+	.form-row {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 16px;
+	}
+
+	.form-group {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.form-group label {
+		font-weight: 700;
+		font-size: 14px;
+		color: #1b1c19;
+	}
+
+	.form-group input:not([type="file"]):not([type="date"]), .form-group textarea {
+		padding: 12px 14px;
+		border: 3px solid #1b1c19;
+		background: #faf9f4;
+		font-family: inherit;
+		font-size: 15px;
+		transition: all 0.2s;
+	}
+
+	.form-group input:focus, .form-group textarea:focus {
+		outline: none;
+		background: #fff;
+		box-shadow: 4px 4px 0px 0px #674bb5;
+	}
+
+	/* Multi Upload Zone */
+	.file-upload-zone {
+		border: 3px dashed #1b1c19;
+		background: #faf9f4;
+		padding: 24px;
+		text-align: center;
+		transition: all 0.2s;
+		position: relative;
+	}
+
+	.file-upload-zone.drag-over {
+		background: #e8ddff;
+		border-color: #674bb5;
+	}
+
+	.file-upload-label {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 8px;
+		cursor: pointer;
+	}
+
+	.upload-text {
+		font-weight: 600;
+		font-size: 15px;
+	}
+
+	.hidden-file-input {
+		position: absolute;
+		width: 0;
+		height: 0;
+		opacity: 0;
+	}
+
+	.file-preview-list {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		margin-top: 12px;
+	}
+
+	.file-preview-item {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		background: #fff;
+		border: 2px solid #1b1c19;
+		padding: 8px 12px;
+	}
+
+	.file-info {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		font-size: 14px;
+		font-weight: 500;
+	}
+
+	.btn-remove-file {
+		background: #ffdde1;
+		color: #d32f2f;
+		border: 2px solid #1b1c19;
+		width: 28px;
+		height: 28px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: transform 0.1s;
+	}
+
+	.btn-remove-file:hover {
+		transform: scale(1.05);
+		background: #ffc4c9;
+	}
+
+	/* Submit Button */
+	.btn-submit {
+		background: #1b1c19;
+		color: #fff;
+		border: 3px solid #1b1c19;
+		box-shadow: 4px 4px 0px 0px #674bb5;
+		padding: 14px 24px;
+		font-weight: 700;
+		font-family: inherit;
+		font-size: 16px;
+		cursor: pointer;
+		margin-top: 8px;
+		width: 100%;
+		transition: transform 0.15s, box-shadow 0.15s;
+	}
+
+	.btn-submit:hover:not(:disabled) {
+		transform: translate(-2px, -2px);
+		box-shadow: 6px 6px 0px 0px #674bb5;
+	}
+
+	.btn-submit:active:not(:disabled) {
+		transform: translate(2px, 2px);
+		box-shadow: 0px 0px 0px 0px #674bb5;
+	}
+
+	.btn-submit:disabled {
+		opacity: 0.7;
+		cursor: not-allowed;
+		box-shadow: 2px 2px 0px 0px #674bb5;
+	}
+
+	/* Data Section */
+	.data-section h2 {
+		margin: 0 0 20px;
+		font-size: 24px;
+		font-weight: 700;
+		letter-spacing: -0.02em;
+		background: #efeee9;
+		display: inline-block;
+		padding: 8px 16px;
+		border: 3px solid #1b1c19;
+		box-shadow: 4px 4px 0px 0px #1b1c19;
+	}
+
+	.empty-state {
+		padding: 48px;
+		text-align: center;
+		color: #7a7583;
+		background: #efeee9;
+		border: 4px solid #1b1c19;
+	}
+
+	.table-container {
+		background: #fff;
+		border: 4px solid #1b1c19;
+		box-shadow: 6px 6px 0px 0px #1b1c19;
+		overflow-x: auto;
+	}
+
+	.data-table {
+		width: 100%;
+		border-collapse: collapse;
+		text-align: left;
+	}
+
+	.data-table th, .data-table td {
+		padding: 14px 16px;
+		border-bottom: 2px solid #1b1c19;
+	}
+
+	.data-table th {
+		background: #efeee9;
+		font-weight: 700;
+	}
+
+	.badge {
+		font-size: 11px;
+		font-weight: 700;
+		padding: 4px 8px;
+		background: #1b1c19;
+		color: #fff;
+		letter-spacing: 0.05em;
+	}
+
+	/* Modal CSS */
+	.modal-backdrop {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background: rgba(27, 28, 25, 0.5);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 1000;
+		padding: 16px;
+	}
+
+	.modal-content {
+		background: #faf9f4;
+		border: 4px solid #1b1c19;
+		box-shadow: 8px 8px 0px 0px #1b1c19;
+		width: 100%;
+		max-width: 600px;
+		max-height: 90vh;
+		overflow-y: auto;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.modal-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 16px 24px;
+		border-bottom: 3px solid #1b1c19;
+		background: #fff;
+	}
+
+	.modal-body {
+		padding: 24px;
+	}
+
+	.meta-info {
+		display: flex;
+		gap: 16px;
+		flex-wrap: wrap;
+		margin-bottom: 24px;
+		align-items: center;
+		color: #494552;
+		font-weight: 500;
+		font-size: 14px;
+	}
+
+	.meta-info span {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+	}
+
+	.desc-content {
+		line-height: 1.6;
+		color: #1b1c19;
+		white-space: pre-wrap;
+	}
+
+	.delete-modal {
+		max-width: 450px;
+	}
+
+	.text-danger {
+		color: #d32f2f !important;
+		font-weight: 600;
+	}
+
+	.modal-actions {
+		display: flex;
+		justify-content: flex-end;
+		gap: 12px;
+		margin-top: 24px;
+	}
+
+	.btn-danger {
+		background: #d32f2f !important;
+	}
+
+	.btn-danger:hover {
+		background: #b71c1c !important;
+	}
+
+	.photo-slider-wrapper {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 16px;
+		margin-bottom: 24px;
+	}
+
+	.photo-frame {
+		position: relative;
+		flex: 1;
+		aspect-ratio: 16 / 9;
+		display: grid;
+	}
+
+	.slider-img-wrapper {
+		grid-area: 1 / 1;
+		width: 100%;
+		height: 100%;
+		background: #efeee9;
+		border: 4px solid #1b1c19;
+		box-shadow: 6px 6px 0px 0px #1b1c19;
+		display: flex;
+	}
+
+	.slider-img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.slider-btn {
+		width: 44px;
+		height: 44px;
+		flex-shrink: 0;
+		background: #faf9f4;
+		border: 3px solid #1b1c19;
+		box-shadow: 2px 2px 0px 0px #1b1c19;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: all 0.15s;
+		z-index: 10;
+	}
+
+	.slider-btn:hover {
+		background: #674bb5;
+		color: #fff;
+		transform: translate(-2px, -2px);
+		box-shadow: 4px 4px 0px 0px #1b1c19;
+	}
+
+	.slider-btn:active {
+		transform: translate(2px, 2px);
+		box-shadow: 0px 0px 0px 0px #1b1c19;
+	}
+
+	.slider-counter {
+		position: absolute;
+		bottom: 12px;
+		right: 12px;
+		background: #1b1c19;
+		color: #fff;
+		padding: 4px 12px;
+		font-weight: 700;
+		font-size: 12px;
+		border: 2px solid #faf9f4;
+		grid-area: 1 / 1;
+		align-self: end;
+		justify-self: end;
+		z-index: 10;
+	}
+
+	.preview-thumbnail {
+		width: 40px;
+		height: 40px;
+		object-fit: cover;
+		border: 2px solid #1b1c19;
+		flex-shrink: 0;
+	}
+
+	.empty-state {
+		padding: 32px;
+		background: #e8ddff;
+		border: 3px dashed #674bb5;
+		text-align: center;
+		font-weight: 600;
+		color: #674bb5;
+	}
+
+	.table-container {
+		background: #fff;
+		border: 4px solid #1b1c19;
+		box-shadow: 6px 6px 0px 0px #1b1c19;
+		overflow-x: auto;
+	}
+
+	.data-table {
+		width: 100%;
+		border-collapse: collapse;
+		text-align: left;
+	}
+
+	.data-table th, .data-table td {
+		padding: 14px 16px;
+		border-bottom: 2px solid #1b1c19;
+	}
+
+	.data-table th {
+		background: #efeee9;
+		font-weight: 700;
+	}
+
+	.badge {
+		font-size: 11px;
+		font-weight: 700;
+		padding: 4px 8px;
+		background: #1b1c19;
+		color: #fff;
+		letter-spacing: 0.05em;
+	}
+
+	.btn-icon {
+		background: none;
+		border: none;
+		cursor: pointer;
+		color: #1b1c19;
+		padding: 4px;
+	}
+
+	.btn-icon:hover {
+		color: #674bb5;
+	}
+
+	.btn-icon-danger:hover {
+		color: #d32f2f;
+	}
+
+	.table-actions {
+		display: flex;
+		gap: 8px;
+		align-items: center;
+	}
+
+	.action-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		background: #efeee9;
+		border: 2px solid #1b1c19;
+		color: #1b1c19;
+		padding: 6px;
+		cursor: pointer;
+		transition: transform 0.15s, box-shadow 0.15s;
+		box-shadow: 2px 2px 0px 0px #1b1c19;
+	}
+
+	.action-btn:hover {
+		transform: translate(-1px, -1px);
+		box-shadow: 3px 3px 0px 0px #1b1c19;
+		background: #e8ddff;
+		color: #674bb5;
+	}
+
+	.action-btn:active {
+		transform: translate(1px, 1px);
+		box-shadow: 0px 0px 0px 0px #1b1c19;
+	}
+
+	.action-btn-danger {
+		background: #ffdad6;
+	}
+
+	.action-btn-danger:hover {
+		background: #ffb4ab;
+		color: #ba1a1a;
+	}
+
+	@media (max-width: 600px) {
+		.form-row { grid-template-columns: 1fr; }
+	}
+
+	/* Toast Notification */
+	.toast {
+		position: fixed;
+		top: 24px;
+		left: 50%;
+		transform: translateX(-50%);
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 14px 24px;
+		border: 3px solid #1b1c19;
+		box-shadow: 4px 4px 0px 0px #1b1c19;
+		z-index: 1000;
+		font-weight: 700;
+		font-size: 15px;
+		animation: slideDown 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+	}
+
+	.toast-error {
+		background: #ffdde1;
+		color: #d32f2f;
+	}
+
+	.toast-success {
+		background: #e6ffed;
+		color: #22863a;
+	}
+
+	@keyframes slideDown {
+		from {
+			transform: translate(-50%, -100%);
+			opacity: 0;
+		}
+		to {
+			transform: translate(-50%, 0);
+			opacity: 1;
+		}
+	}
+</style>

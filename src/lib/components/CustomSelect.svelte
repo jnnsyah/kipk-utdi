@@ -1,5 +1,6 @@
 <script>
 	import { clickOutside } from '$lib/utils/clickOutside.js';
+	import Icon from './icons/Icon.svelte';
 
 	let { options = [], value = $bindable(), placeholder = "Pilih opsi" } = $props();
 
@@ -20,9 +21,7 @@
 <div class="custom-select" use:clickOutside={() => isOpen = false}>
 	<button type="button" class="select-trigger {isOpen ? 'open' : ''}" onclick={toggle}>
 		<span>{selectedLabel}</span>
-		<svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-			<polyline points="6 9 12 15 18 9"></polyline>
-		</svg>
+		<Icon name="chevron_down" size={20} class="chevron" />
 	</button>
 
 	{#if isOpen}

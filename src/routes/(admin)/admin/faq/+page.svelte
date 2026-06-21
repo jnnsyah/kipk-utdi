@@ -1,5 +1,9 @@
 <script>
 	import { enhance } from '$app/forms';
+	import Button from '$lib/components/ui/Button.svelte';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
+	import BackLink from '$lib/components/ui/BackLink.svelte';
+	import DataTable from '$lib/components/ui/DataTable.svelte';
 
 	/** @type {import('./$types').PageData} */
 	let { data } = $props();
@@ -12,70 +16,57 @@
 </svelte:head>
 
 <div class="page-container">
-	<header class="page-header">
-		<div>
-			<a href="/admin/dashboard" class="back-link">
-				<span class="material-symbols-outlined">arrow_back</span>
-				Kembali ke Dashboard
-			</a>
-			<h1 class="page-title">Kelola FAQ</h1>
-		</div>
-		<button class="btn-primary" onclick={() => alert('Fitur belum diimplementasi sepenuhnya')}>
-			<span class="material-symbols-outlined">add</span>
-			Tambah FAQ
-		</button>
-	</header>
+	<BackLink />
+	<PageHeader 
+		title="Kelola FAQ" 
+		buttonLabel="Tambah FAQ"
+		buttonIcon="add"
+		onaction={() => alert('Fitur belum diimplementasi sepenuhnya')}
+	/>
 
 	<section class="data-section">
 		{#if faqs.length === 0}
 			<p class="empty-state">Belum ada FAQ yang ditambahkan.</p>
 		{:else}
-			<div class="table-container">
-				<table class="data-table">
-					<thead>
-						<tr>
-							<th>Order</th>
-							<th>Pertanyaan</th>
-							<th>Jawaban</th>
-							<th>Aksi</th>
-						</tr>
-					</thead>
-					<tbody>
-						{#each faqs as faq}
-							<tr>
-								<td>{faq.order}</td>
-								<td><strong>{faq.question}</strong></td>
-								<td>{faq.answer.substring(0, 50)}...</td>
-								<td>
-									<button class="btn-icon"><span class="material-symbols-outlined">edit</span></button>
-									<button class="btn-icon btn-icon-danger"><span class="material-symbols-outlined">delete</span></button>
-								</td>
-							</tr>
-						{/each}
-					</tbody>
-				</table>
-			</div>
+			<DataTable headers={['Order', 'Pertanyaan', 'Jawaban', 'Aksi']}>
+				{#each faqs as faq}
+					<tr>
+						<td>{faq.order}</td>
+						<td><strong>{faq.question}</strong></td>
+						<td>{faq.answer.substring(0, 50)}...</td>
+						<td>
+							<Button variant="icon" title="Edit"><Icon name="edit" size={20} /></Button>
+							<Button variant="icon" class="btn-icon-danger" title="Hapus"><Icon name="delete" size={20} color="#d32f2f" /></Button>
+						</td>
+					</tr>
+				{/each}
+			</DataTable>
 		{/if}
 	</section>
 </div>
 
 <style>
-	/* Same styles as kegiatan page */
-	.page-container { max-width: 960px; margin: 0 auto; padding: 24px 16px 48px; display: flex; flex-direction: column; gap: 32px; }
-	.page-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
-	.back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: #674bb5; text-decoration: none; font-weight: 600; margin-bottom: 12px; }
-	.back-link:hover { text-decoration: underline; }
-	.back-link .material-symbols-outlined { font-size: 18px; }
-	.page-title { margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -0.02em; }
-	.btn-primary { display: inline-flex; align-items: center; gap: 8px; background: #674bb5; color: #fff; border: 3px solid #1b1c19; box-shadow: 4px 4px 0px 0px #1b1c19; padding: 10px 20px; font-family: inherit; font-weight: 700; font-size: 15px; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
-	.btn-primary:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0px 0px #1b1c19; }
-	.data-section h2 { margin: 0 0 16px; }
-	.empty-state { padding: 32px; background: #e8ddff; border: 3px dashed #674bb5; text-align: center; font-weight: 600; color: #674bb5; }
-	.table-container { background: #fff; border: 4px solid #1b1c19; box-shadow: 6px 6px 0px 0px #1b1c19; overflow-x: auto; }
-	.data-table { width: 100%; border-collapse: collapse; text-align: left; }
-	.data-table th, .data-table td { padding: 14px 16px; border-bottom: 2px solid #1b1c19; }
-	.data-table th { background: #efeee9; font-weight: 700; }
-	.btn-icon { background: none; border: none; cursor: pointer; color: #1b1c19; padding: 4px; }
-	.btn-icon:hover { color: #674bb5; }
-	.btn-icon-danger:hover { color: #d32f2f; }
+	.page-container {
+		max-width: 960px;
+		margin: 0 auto;
+		padding: 24px 16px 48px;
+		display: flex;
+		flex-direction: column;
+		gap: 32px;
+	}
+
+	.data-section {
+		background: #fff;
+		border: 4px solid #1b1c19;
+		box-shadow: 6px 6px 0px 0px #1b1c19;
+	}
+
+	.empty-state {
+		padding: 48px;
+		text-align: center;
+		color: #7a7583;
+		background: #efeee9;
+		border: 4px solid #1b1c19;
+	}
+
 </style>

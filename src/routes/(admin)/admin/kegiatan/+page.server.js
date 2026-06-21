@@ -1,10 +1,9 @@
 export async function load({ locals }) {
 	const { supabase } = locals;
 	
-	// Ambil kegiatan halaman pertama (10 item), diurutkan dari yang terbaru
-	const { data: activities, count, error } = await supabase
+	const { data, count, error } = await supabase
 		.from('activities')
-		.select('*', { count: 'exact' })
+		.select('*, photos:activity_photos(*)', { count: 'exact' })
 		.order('date', { ascending: false })
 		.range(0, 9);
 		
@@ -13,8 +12,25 @@ export async function load({ locals }) {
 		return { activities: [], totalItems: 0 };
 	}
 
+	const mappedActivities = data.map(act => {
+		const photos = act.photos
+			? act.photos
+				.sort((a, b) => a.order - b.order)
+				.map(p => {
+					const { data: urlData } = supabase.storage
+						.from('dokumentasi-kegiatan')
+						.getPublicUrl(p.storage_path);
+					return urlData.publicUrl;
+				})
+			: [];
+		return {
+			...act,
+			photos
+		};
+	});
+
 	return {
-		activities,
+		activities: mappedActivities,
 		totalItems: count
 	};
 }

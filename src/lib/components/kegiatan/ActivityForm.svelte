@@ -30,6 +30,7 @@
 	];
 
 	let dragOver = $state(false);
+	let activeZoomPhoto = $state(null);
 
 	function handleDrop(e) {
 		e.preventDefault();
@@ -124,7 +125,8 @@
 				<div class="photos-grid">
 					{#each existingPhotos as url}
 						<div class="photo-preview-item {photosToDelete.includes(url) ? 'marked-delete' : ''}">
-							<img src={url} alt="Existing" />
+							<!-- svelte-ignore a11y_click_events_have_key_events -->
+							<img src={url} alt="Existing" onclick={() => activeZoomPhoto = url} style="cursor: zoom-in;" role="button" tabindex="0" />
 							<button type="button" class="btn-remove-photo" onclick={() => toggleDeletePhoto(url)}>
 								<Icon name={photosToDelete.includes(url) ? 'restore' : 'delete'} size={16} />
 							</button>
@@ -143,7 +145,8 @@
 				<div class="photos-grid">
 					{#each files as file, index}
 						<div class="photo-preview-item">
-							<img src={URL.createObjectURL(file)} alt="Preview {index}" />
+							<!-- svelte-ignore a11y_click_events_have_key_events -->
+							<img src={URL.createObjectURL(file)} alt="Preview {index}" onclick={(e) => activeZoomPhoto = e.target.src} style="cursor: zoom-in;" role="button" tabindex="0" />
 							<button type="button" class="btn-remove-photo" onclick={() => removeFile(index)}>
 								<Icon name="close" size={16} />
 							</button>
@@ -169,6 +172,20 @@
 		</Button>
 	</div>
 </form>
+
+{#if activeZoomPhoto}
+	<!-- svelte-ignore a11y_click_events_have_key_events -->
+	<div 
+		class="zoom-backdrop" 
+		onclick={() => activeZoomPhoto = null}
+		role="button"
+		tabindex="0"
+	>
+		<div class="zoom-content" onclick={(e) => e.stopPropagation()}>
+			<img src={activeZoomPhoto} alt="Zoomed preview" class="zoom-image" />
+		</div>
+	</div>
+{/if}
 
 <style>
 	.form-group { margin-bottom: 20px; }
@@ -251,4 +268,58 @@
 	.progress-container { width: 100%; height: 8px; background: #efeee9; border: 2px solid var(--border-color); margin-top: 16px; }
 	.progress-bar { height: 100%; background: var(--primary-color); transition: width 0.3s; }
 	.progress-text { font-size: 12px; font-weight: 700; margin-top: 4px; text-align: right; }
+
+	/* Zoom / Lightbox Preview */
+	.zoom-backdrop {
+		position: fixed;
+		inset: 0;
+		background: rgba(0, 0, 0, 0.85);
+		backdrop-filter: blur(4px);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 2000;
+		padding: 24px;
+		cursor: zoom-out;
+	}
+	.zoom-content {
+		position: relative;
+		background: #fff;
+		border: 4px solid var(--border-color);
+		box-shadow: 8px 8px 0px 0px var(--shadow-color);
+		max-width: 90vw;
+		max-height: 90vh;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		overflow: hidden;
+		cursor: default;
+	}
+	.zoom-image {
+		max-width: 100%;
+		max-height: 80vh;
+		object-fit: contain;
+		display: block;
+	}
+	.zoom-close {
+		position: absolute;
+		top: 12px;
+		right: 12px;
+		width: 40px;
+		height: 40px;
+		background: var(--surface-white);
+		border: 3px solid var(--border-color);
+		box-shadow: 2px 2px 0px 0px var(--shadow-color);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: all 0.1s;
+	}
+	.zoom-close:hover {
+		background: var(--danger-color);
+		color: #fff;
+		transform: translate(-1px, -1px);
+		box-shadow: 3px 3px 0px 0px var(--shadow-color);
+	}
 </style>

@@ -9,6 +9,7 @@
 	import BackLink from '$lib/components/ui/BackLink.svelte';
 	import DataTable from '$lib/components/ui/DataTable.svelte';
 	import ActivityForm from '$lib/components/kegiatan/ActivityForm.svelte';
+	import CustomSelect from '$lib/components/CustomSelect.svelte';
 	import { fetchActivities, addActivity, updateActivity, deleteActivity } from '$lib/services/activityService.js';
 	import { showToast } from '$lib/stores/toast.svelte.js';
 
@@ -22,7 +23,21 @@
 	const itemsPerPage = 10;
 	let totalPages = $derived(Math.ceil(totalItems / itemsPerPage) || 1);
 
-	// Modal states
+	// Search & Filter states
+	let searchQuery = $state('');
+	let selectedTag = $state('ALL');
+	let searchTimeout;
+
+	const filterOptions = [
+		{ value: 'ALL', label: 'Semua Kategori' },
+		{ value: 'SEMINAR', label: 'Seminar' },
+		{ value: 'WORKSHOP', label: 'Workshop' },
+		{ value: 'TRAINING', label: 'Training' },
+		{ value: 'SOSIALISASI', label: 'Sosialisasi' },
+		{ value: 'LAINNYA', label: 'Lainnya' }
+	];
+
+	// Drawer/Modal states
 	let isAdding = $state(false);
 	let isEditing = $state(false);
 	let isViewing = $state(false);
@@ -43,9 +58,20 @@
 	let isUploading = $state(false);
 	let uploadProgress = $state(0);
 
+	let isMounted = false;
+	$effect(() => {
+		const tag = selectedTag;
+		if (isMounted) {
+			currentPage = 1;
+			loadActivities();
+		} else {
+			isMounted = true;
+		}
+	});
+
 	async function loadActivities() {
 		try {
-			const { data: actData, count } = await fetchActivities(currentPage, itemsPerPage);
+			const { data: actData, count } = await fetchActivities(currentPage, itemsPerPage, searchQuery, selectedTag);
 			activities = actData;
 			totalItems = count || actData.length;
 		} catch (error) {
@@ -70,6 +96,7 @@
 	function openAddModal() {
 		resetForm();
 		isAdding = true;
+		isEditing = false;
 	}
 
 	function openEditModal(activity) {
@@ -83,6 +110,7 @@
 		description = activity.description || '';
 		existingPhotos = activity.photos || [];
 		isEditing = true;
+		isAdding = false;
 	}
 
 	function openViewModal(activity) {
@@ -149,6 +177,14 @@
 			loadActivities();
 		}
 	}
+
+	function handleSearchInput() {
+		if (searchTimeout) clearTimeout(searchTimeout);
+		searchTimeout = setTimeout(() => {
+			currentPage = 1;
+			loadActivities();
+		}, 300);
+	}
 </script>
 
 <svelte:head>
@@ -158,77 +194,106 @@
 <div class="kegiatan-page">
 	<div class="grid-bg" aria-hidden="true"></div>
 	
-	<div class="kegiatan-container">
-		<BackLink />
-		<PageHeader 
-			title="Daftar Kegiatan" 
-			subtitle="Kelola dokumentasi dan informasi kegiatan mahasiswa KIP-K"
-			buttonLabel="Tambah Kegiatan"
-			buttonIcon="add"
-			onaction={openAddModal}
-		/>
+	<div class="kegiatan-layout">
+		<!-- Main Content Area -->
+		<div class="main-content-panel">
+			<BackLink />
+			<PageHeader 
+				title="Daftar Kegiatan" 
+				subtitle="Kelola dokumentasi dan informasi kegiatan mahasiswa KIP-K"
+				buttonLabel="Tambah Kegiatan"
+				buttonIcon="add"
+				onaction={openAddModal}
+			/>
 
-		<DataTable headers={['Tanggal', 'Judul Kegiatan', 'Kategori', 'Lokasi', 'Aksi']}>
-			{#each activities as activity}
-				<tr>
-					<td style="white-space: nowrap; font-size: 13px;">{formatDate(activity.date)}</td>
-					<td style="font-weight: 600;">{activity.title}</td>
-					<td><Badge type={activity.tag} /></td>
-					<td style="font-size: 13px;">{activity.location}</td>
-					<td>
-						<div class="table-actions">
-							<Button variant="icon" onclick={() => openViewModal(activity)} title="Lihat">
-								<Icon name="visibility" size={18} />
-							</Button>
-							<Button variant="icon" onclick={() => openEditModal(activity)} title="Edit">
-								<Icon name="edit" size={18} />
-							</Button>
-							<Button variant="icon" class="btn-icon-danger" onclick={() => openDeleteModal(activity)} title="Hapus">
-								<Icon name="delete" size={18} color="#d32f2f" />
-							</Button>
-						</div>
-					</td>
-				</tr>
-			{/each}
-			{#if activities.length === 0}
-				<tr>
-					<td colspan="5">
-						<div class="empty-state">Belum ada data kegiatan.</div>
-					</td>
-				</tr>
-			{/if}
+			<!-- Search and Filter Controls -->
+			<div class="filter-bar">
+				<div class="search-input-wrapper">
+					<Icon name="search" size={18} class="search-icon" />
+					<input 
+						type="text" 
+						placeholder="Cari kegiatan atau lokasi..." 
+						bind:value={searchQuery}
+						oninput={handleSearchInput}
+					/>
+				</div>
 
-			{#snippet footer()}
-				{#if totalPages > 1}
-					<div class="pagination">
-						<Button variant="secondary" disabled={currentPage === 1} onclick={prevPage}>Sebelumnya</Button>
-						<span class="page-info">Halaman {currentPage} dari {totalPages}</span>
-						<Button variant="secondary" disabled={currentPage === totalPages} onclick={nextPage}>Selanjutnya</Button>
-					</div>
+				<div class="filter-select-wrapper">
+					<CustomSelect options={filterOptions} bind:value={selectedTag} placeholder="Semua Kategori" />
+				</div>
+			</div>
+
+			<DataTable headers={['Tanggal', 'Judul Kegiatan', 'Kategori', 'Lokasi', 'Aksi']}>
+				{#each activities as activity}
+					<tr>
+						<td style="white-space: nowrap; font-size: 13px;">{formatDate(activity.date)}</td>
+						<td style="font-weight: 600;">{activity.title}</td>
+						<td><Badge type={activity.tag} /></td>
+						<td style="font-size: 13px;">{activity.location}</td>
+						<td>
+							<div class="table-actions">
+								<Button variant="icon" onclick={() => openViewModal(activity)} title="Lihat">
+									<Icon name="visibility" size={18} />
+								</Button>
+								<Button variant="icon" onclick={() => openEditModal(activity)} title="Edit">
+									<Icon name="edit" size={18} />
+								</Button>
+								<Button variant="icon" class="btn-icon-danger" onclick={() => openDeleteModal(activity)} title="Hapus">
+									<Icon name="delete" size={18} color="#d32f2f" />
+								</Button>
+							</div>
+						</td>
+					</tr>
+				{/each}
+				{#if activities.length === 0}
+					<tr>
+						<td colspan="5">
+							<div class="empty-state">Belum ada data kegiatan.</div>
+						</td>
+					</tr>
 				{/if}
-			{/snippet}
-		</DataTable>
+
+				{#snippet footer()}
+					{#if totalPages > 1}
+						<div class="pagination">
+							<Button variant="secondary" disabled={currentPage === 1} onclick={prevPage}>Sebelumnya</Button>
+							<span class="page-info">Halaman {currentPage} dari {totalPages}</span>
+							<Button variant="secondary" disabled={currentPage === totalPages} onclick={nextPage}>Selanjutnya</Button>
+						</div>
+					{/if}
+				{/snippet}
+			</DataTable>
+		</div>
+
+		<!-- Drawer Panel for Add / Edit -->
+		{#if isAdding || isEditing}
+			<div class="drawer-panel">
+				<div class="drawer-header">
+					<h2 class="drawer-title">{isEditing ? 'Edit Kegiatan' : 'Tambah Kegiatan Baru'}</h2>
+					<Button variant="icon" onclick={() => { isAdding = false; isEditing = false; }} title="Tutup">
+						<Icon name="close" size={20} />
+					</Button>
+				</div>
+				<div class="drawer-body">
+					{#if isAdding}
+						<ActivityForm 
+							bind:title bind:tag bind:date bind:location bind:academic_year bind:description bind:files
+							{isUploading} {uploadProgress}
+							onsubmit={handleSave} oncancel={() => isAdding = false}
+						/>
+					{:else if isEditing}
+						<ActivityForm 
+							isEditing={true}
+							bind:title bind:tag bind:date bind:location bind:academic_year bind:description bind:files bind:existingPhotos bind:photosToDelete
+							{isUploading} {uploadProgress}
+							onsubmit={handleSave} oncancel={() => isEditing = false}
+						/>
+					{/if}
+				</div>
+			</div>
+		{/if}
 	</div>
 </div>
-
-<!-- Add Modal -->
-<Modal bind:show={isAdding} title="Tambah Kegiatan Baru">
-	<ActivityForm 
-		bind:title bind:tag bind:date bind:location bind:academic_year bind:description bind:files
-		{isUploading} {uploadProgress}
-		onsubmit={handleSave} oncancel={() => isAdding = false}
-	/>
-</Modal>
-
-<!-- Edit Modal -->
-<Modal bind:show={isEditing} title="Edit Kegiatan">
-	<ActivityForm 
-		isEditing={true}
-		bind:title bind:tag bind:date bind:location bind:academic_year bind:description bind:files bind:existingPhotos bind:photosToDelete
-		{isUploading} {uploadProgress}
-		onsubmit={handleSave} oncancel={() => isEditing = false}
-	/>
-</Modal>
 
 <!-- View Modal -->
 <Modal bind:show={isViewing} title="Detail Kegiatan" maxWidth="700px">
@@ -242,15 +307,15 @@
 				<span class="meta-item"><Icon name="school" size={16}/> TA {currentActivity.academic_year}</span>
 			</div>
 			
-			{#if currentActivity.description}
-				<div class="detail-desc">
-					{currentActivity.description}
-				</div>
-			{/if}
-
 			{#if currentActivity.photos && currentActivity.photos.length > 0}
 				<div class="detail-photos">
 					<ImageSlider photos={currentActivity.photos} />
+				</div>
+			{/if}
+
+			{#if currentActivity.description}
+				<div class="detail-desc">
+					{currentActivity.description}
 				</div>
 			{/if}
 		</div>
@@ -275,11 +340,60 @@
 		padding: 32px 24px;
 		position: relative;
 	}
-	.kegiatan-container {
-		max-width: 1200px;
+	.kegiatan-layout {
+		display: flex;
+		gap: 24px;
+		max-width: 1400px;
 		margin: 0 auto;
 		position: relative;
 		z-index: 10;
+		align-items: flex-start;
+	}
+	.main-content-panel {
+		flex: 1;
+		min-width: 0;
+		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+	.drawer-panel {
+		width: 580px;
+		flex-shrink: 0;
+		background: var(--surface-white, #fff);
+		border: 4px solid var(--border-color, #1b1c19);
+		box-shadow: 8px 8px 0px 0px var(--shadow-color, #1b1c19);
+		display: flex;
+		flex-direction: column;
+		height: fit-content;
+		position: sticky;
+		top: 32px;
+		animation: slideIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+	@keyframes slideIn {
+		from {
+			opacity: 0;
+			transform: translateX(40px);
+		}
+		to {
+			opacity: 1;
+			transform: translateX(0);
+		}
+	}
+	.drawer-header {
+		padding: 16px 20px;
+		border-bottom: 3px solid var(--border-color, #1b1c19);
+		background: var(--primary-light, #e8ddff);
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+	.drawer-title {
+		margin: 0;
+		font-size: 18px;
+		font-weight: 700;
+	}
+	.drawer-body {
+		padding: 20px;
+		max-height: 80vh;
+		overflow-y: auto;
 	}
 	.table-actions {
 		display: flex;
@@ -313,4 +427,70 @@
 	.meta-item { display: flex; align-items: center; gap: 4px; }
 	.detail-desc { line-height: 1.6; background: var(--surface); padding: 16px; border-left: 4px solid var(--primary-color); margin-bottom: 24px; white-space: pre-wrap; }
 	.detail-photos { margin-top: 16px; }
+
+	/* Filter Bar */
+	.filter-bar {
+		display: flex;
+		gap: 16px;
+		margin-bottom: 24px;
+		align-items: center;
+	}
+	.search-input-wrapper {
+		position: relative;
+		flex: 1;
+		min-width: 0;
+	}
+	.search-icon {
+		position: absolute;
+		left: 14px;
+		top: 50%;
+		transform: translateY(-50%);
+		color: #7a7583;
+		pointer-events: none;
+		display: flex;
+		align-items: center;
+	}
+	.search-input-wrapper input {
+		width: 100%;
+		padding: 12px 12px 12px 42px;
+		background: #fff;
+		border: 3px solid var(--border-color, #1b1c19);
+		box-shadow: 4px 4px 0px 0px var(--shadow-color, #1b1c19);
+		font-family: inherit;
+		font-size: 14px;
+		font-weight: 500;
+		transition: all 0.2s ease;
+	}
+	.search-input-wrapper input:focus {
+		outline: none;
+		border-color: var(--primary-color);
+		box-shadow: 4px 4px 0px 0px var(--primary-color);
+	}
+	.filter-select-wrapper {
+		width: 240px;
+		flex-shrink: 0;
+	}
+
+	/* Responsive styles */
+	@media (max-width: 1024px) {
+		.kegiatan-layout {
+			flex-direction: column;
+		}
+		.drawer-panel {
+			width: 100%;
+			position: relative;
+			top: 0;
+			margin-top: 24px;
+		}
+	}
+	@media (max-width: 600px) {
+		.filter-bar {
+			flex-direction: column;
+			gap: 12px;
+			align-items: stretch;
+		}
+		.filter-select-wrapper {
+			width: 100%;
+		}
+	}
 </style>

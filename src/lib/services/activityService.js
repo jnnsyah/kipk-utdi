@@ -11,16 +11,44 @@ export function getSupabase() {
 	return supabase;
 }
 
-export async function fetchActivities(page = 1, itemsPerPage = 10) {
+export async function fetchActivities(page = 1, itemsPerPage = 10, searchQuery = '', tagFilter = '') {
 	const db = getSupabase();
-	const { data, count, error } = await db
+	let query = db
 		.from('activities')
-		.select('*', { count: 'exact' })
+		.select('*, photos:activity_photos(*)', { count: 'exact' });
+
+	if (searchQuery) {
+		query = query.or(`title.ilike.%${searchQuery}%,location.ilike.%${searchQuery}%`);
+	}
+
+	if (tagFilter && tagFilter !== 'ALL') {
+		query = query.eq('tag', tagFilter);
+	}
+
+	const { data, count, error } = await query
 		.order('date', { ascending: false })
 		.range((page - 1) * itemsPerPage, page * itemsPerPage - 1);
 		
 	if (error) throw error;
-	return { data, count };
+
+	const mappedData = data.map(act => {
+		const photos = act.photos
+			? act.photos
+				.sort((a, b) => a.order - b.order)
+				.map(p => {
+					const { data: urlData } = db.storage
+						.from('dokumentasi-kegiatan')
+						.getPublicUrl(p.storage_path);
+					return urlData.publicUrl;
+				})
+			: [];
+		return {
+			...act,
+			photos
+		};
+	});
+
+	return { data: mappedData, count };
 }
 
 export async function addActivity(activityData, files, onProgress) {
@@ -35,18 +63,17 @@ export async function addActivity(activityData, files, onProgress) {
 	if (actError) throw actError;
 
 	if (files && files.length > 0) {
-		const uploadedUrls = [];
 		for (let i = 0; i < files.length; i++) {
 			const file = files[i];
 			if (onProgress) {
-				onProgress(Math.round(((i) / files.length) * 100));
+				onProgress(Math.round((i / files.length) * 100));
 			}
 
 			const compressedFile = await compressImageToWebP(file);
 			const fileName = `${actData.id}/${Date.now()}-${i}.webp`;
 
 			const { error: uploadError } = await db.storage
-				.from('activities')
+				.from('dokumentasi-kegiatan')
 				.upload(fileName, compressedFile, { contentType: 'image/webp' });
 
 			if (uploadError) {
@@ -54,18 +81,17 @@ export async function addActivity(activityData, files, onProgress) {
 				continue;
 			}
 
-			const { data: urlData } = db.storage
-				.from('activities')
-				.getPublicUrl(fileName);
+			const { error: photoDbError } = await db
+				.from('activity_photos')
+				.insert([{
+					activity_id: actData.id,
+					storage_path: fileName,
+					order: i
+				}]);
 
-			uploadedUrls.push(urlData.publicUrl);
-		}
-
-		if (uploadedUrls.length > 0) {
-			await db
-				.from('activities')
-				.update({ photos: uploadedUrls })
-				.eq('id', actData.id);
+			if (photoDbError) {
+				console.error("Gagal menyimpan data foto ke database:", photoDbError);
+			}
 		}
 		if (onProgress) onProgress(100);
 	}
@@ -79,9 +105,10 @@ export async function updateActivity(id, activityData, newFiles, existingPhotos,
 	if (photosToDelete && photosToDelete.length > 0) {
 		for (const url of photosToDelete) {
 			try {
-				const filePath = url.split('/activities/')[1];
+				const filePath = url.split('/dokumentasi-kegiatan/')[1];
 				if (filePath) {
-					await db.storage.from('activities').remove([filePath]);
+					await db.storage.from('dokumentasi-kegiatan').remove([filePath]);
+					await db.from('activity_photos').delete().eq('storage_path', filePath);
 				}
 			} catch (e) {
 				console.error("Error saat menghapus foto lama:", e);
@@ -89,59 +116,77 @@ export async function updateActivity(id, activityData, newFiles, existingPhotos,
 		}
 	}
 
-	let currentPhotos = existingPhotos ? [...existingPhotos] : [];
-	
+	let startOrder = 0;
+	try {
+		const { data: currentPhotosData } = await db
+			.from('activity_photos')
+			.select('order')
+			.eq('activity_id', id)
+			.order('order', { ascending: false })
+			.limit(1);
+		if (currentPhotosData && currentPhotosData.length > 0) {
+			startOrder = currentPhotosData[0].order + 1;
+		}
+	} catch (e) {
+		console.error("Error get start order:", e);
+	}
+
 	// Upload foto baru
 	if (newFiles && newFiles.length > 0) {
 		for (let i = 0; i < newFiles.length; i++) {
 			const file = newFiles[i];
 			if (onProgress) {
-				onProgress(Math.round(((i) / newFiles.length) * 100));
+				onProgress(Math.round((i / newFiles.length) * 100));
 			}
 
 			const compressedFile = await compressImageToWebP(file);
 			const fileName = `${id}/${Date.now()}-${i}.webp`;
 
 			const { error: uploadError } = await db.storage
-				.from('activities')
+				.from('dokumentasi-kegiatan')
 				.upload(fileName, compressedFile, { contentType: 'image/webp' });
 
 			if (!uploadError) {
-				const { data: urlData } = db.storage
-					.from('activities')
-					.getPublicUrl(fileName);
-				currentPhotos.push(urlData.publicUrl);
+				await db
+					.from('activity_photos')
+					.insert([{
+						activity_id: id,
+						storage_path: fileName,
+						order: startOrder + i
+					}]);
+			} else {
+				console.error("Error upload new file:", uploadError);
 			}
 		}
 		if (onProgress) onProgress(100);
 	}
 
-	const updatedData = { ...activityData, photos: currentPhotos };
-
+	// Update data utama activity
 	const { error } = await db
 		.from('activities')
-		.update(updatedData)
+		.update(activityData)
 		.eq('id', id);
 
 	if (error) throw error;
-	return updatedData;
+	return activityData;
 }
 
 export async function deleteActivity(id, existingPhotos) {
 	const db = getSupabase();
 	
-	// Hapus folder/foto dari storage
 	if (existingPhotos && existingPhotos.length > 0) {
 		const filesToRemove = existingPhotos.map(url => {
 			try {
-				return url.split('/activities/')[1];
+				return url.split('/dokumentasi-kegiatan/')[1];
 			} catch(e) { return null; }
 		}).filter(Boolean);
 
 		if (filesToRemove.length > 0) {
-			await db.storage.from('activities').remove(filesToRemove);
+			await db.storage.from('dokumentasi-kegiatan').remove(filesToRemove);
 		}
 	}
+
+	await db.from('activity_photos').delete().eq('activity_id', id);
 
 	const { error } = await db
 		.from('activities')

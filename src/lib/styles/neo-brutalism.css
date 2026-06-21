@@ -30,7 +30,7 @@ body {
 }
 
 /* Base Buttons */
-.btn-primary, .btn-secondary, .btn-icon {
+.btn-primary, .btn-secondary, .btn-danger, .btn-icon {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -85,6 +85,13 @@ body {
 
 .btn-danger:hover {
 	background: var(--danger-hover);
+	transform: translate(-2px, -2px);
+	box-shadow: 6px 6px 0px 0px var(--shadow-color);
+}
+
+.btn-danger:active {
+	transform: translate(2px, 2px);
+	box-shadow: 0px 0px 0px 0px var(--shadow-color);
 }
 
 .btn-icon {

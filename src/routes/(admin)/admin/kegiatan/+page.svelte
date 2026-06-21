@@ -12,6 +12,7 @@
 	import CustomSelect from '$lib/components/CustomSelect.svelte';
 	import { fetchActivities, addActivity, updateActivity, deleteActivity } from '$lib/services/activityService.js';
 	import { showToast } from '$lib/stores/toast.svelte.js';
+	import { showLoading, hideLoading } from '$lib/stores/loading.svelte.js';
 
 	/** @type {import('./$types').PageData} */
 	let { data } = $props();
@@ -71,11 +72,14 @@
 
 	async function loadActivities() {
 		try {
+			showLoading('Memuat data...');
 			const { data: actData, count } = await fetchActivities(currentPage, itemsPerPage, searchQuery, selectedTag);
 			activities = actData;
 			totalItems = count || actData.length;
 		} catch (error) {
 			showToast('Gagal memuat data kegiatan', 'error');
+		} finally {
+			hideLoading();
 		}
 	}
 
@@ -125,6 +129,7 @@
 
 	async function handleSave() {
 		try {
+			showLoading('Menyimpan data kegiatan...');
 			isUploading = true;
 			const activityData = { title, tag, date, location, academic_year, description };
 			
@@ -143,17 +148,21 @@
 			showToast('Terjadi kesalahan saat menyimpan', 'error');
 		} finally {
 			isUploading = false;
+			hideLoading();
 		}
 	}
 
 	async function confirmDelete() {
 		try {
+			showLoading('Menghapus kegiatan...');
 			await deleteActivity(currentActivity.id, currentActivity.photos);
 			showToast('Kegiatan berhasil dihapus', 'success');
 			isDeleting = false;
 			loadActivities();
 		} catch (error) {
 			showToast('Gagal menghapus kegiatan', 'error');
+		} finally {
+			hideLoading();
 		}
 	}
 

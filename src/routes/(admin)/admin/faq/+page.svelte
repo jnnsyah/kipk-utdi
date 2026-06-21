@@ -8,6 +8,7 @@
 	import FaqForm from '$lib/components/faq/FaqForm.svelte';
 	import { fetchFaqs, addFaq, updateFaq, deleteFaq } from '$lib/services/faqService.js';
 	import { showToast } from '$lib/stores/toast.svelte.js';
+	import { showLoading, hideLoading } from '$lib/stores/loading.svelte.js';
 
 	/** @type {import('./$types').PageData} */
 	let { data } = $props();
@@ -39,7 +40,7 @@
 
 	async function loadFaqs() {
 		try {
-			isLoading = true;
+			showLoading('Memuat data...');
 			const { data: faqData, count } = await fetchFaqs(currentPage, itemsPerPage, searchQuery);
 			faqs = faqData;
 			totalItems = count || faqData.length;
@@ -47,7 +48,7 @@
 			console.error("Load Faqs Error:", error);
 			showToast('Gagal memuat data FAQ: ' + (error.message || 'Terjadi kesalahan'), 'error');
 		} finally {
-			isLoading = false;
+			hideLoading();
 		}
 	}
 
@@ -85,6 +86,7 @@
 
 	async function handleSave() {
 		try {
+			showLoading('Menyimpan data...');
 			isLoading = true;
 			const faqData = { question, answer, order };
 			
@@ -103,12 +105,13 @@
 			showToast('Gagal menyimpan: ' + (error.message || 'Terjadi kesalahan'), 'error');
 		} finally {
 			isLoading = false;
+			hideLoading();
 		}
 	}
 
 	async function confirmDelete() {
 		try {
-			isLoading = true;
+			showLoading('Menghapus data...');
 			await deleteFaq(currentFaq.id);
 			showToast('FAQ berhasil dihapus', 'success');
 			isDeleting = false;
@@ -117,7 +120,7 @@
 			console.error("Delete Error:", error);
 			showToast('Gagal menghapus: ' + (error.message || 'Terjadi kesalahan'), 'error');
 		} finally {
-			isLoading = false;
+			hideLoading();
 		}
 	}
 
@@ -156,14 +159,7 @@
 <div class="faq-page">
 	<div class="grid-bg" aria-hidden="true"></div>
 	
-	{#if isLoading}
-		<div class="loading-overlay" aria-live="polite">
-			<div class="loading-card">
-				<div class="spinner"></div>
-				<span>Memproses data...</span>
-			</div>
-		</div>
-	{/if}
+
 
 	<div class="faq-layout">
 		<!-- Main Content Panel -->
@@ -428,42 +424,7 @@
 		box-shadow: 4px 4px 0px 0px var(--primary-color);
 	}
 
-	/* Loading overlay styles */
-	.loading-overlay {
-		position: fixed;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background: rgba(27, 28, 25, 0.4);
-		backdrop-filter: blur(2px);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		z-index: 9999;
-	}
-	.loading-card {
-		background: #fff;
-		border: 4px solid #1b1c19;
-		box-shadow: 8px 8px 0px 0px #1b1c19;
-		padding: 24px 32px;
-		display: flex;
-		align-items: center;
-		gap: 16px;
-		font-weight: 700;
-		font-size: 16px;
-	}
-	.spinner {
-		width: 24px;
-		height: 24px;
-		border: 4px solid #1b1c19;
-		border-top-color: var(--primary-color, #674bb5);
-		border-radius: 50%;
-		animation: spin 0.8s linear infinite;
-	}
-	@keyframes spin {
-		to { transform: rotate(360deg); }
-	}
+
 
 	/* Responsive styles */
 	@media (max-width: 1024px) {

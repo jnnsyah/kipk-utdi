@@ -9,6 +9,7 @@
 	import ContentForm from '$lib/components/konten/ContentForm.svelte';
 	import { fetchContents, updateContent } from '$lib/services/contentService.js';
 	import { showToast } from '$lib/stores/toast.svelte.js';
+	import { showLoading, hideLoading } from '$lib/stores/loading.svelte.js';
 
 	/** @type {import('./$types').PageData} */
 	let { data } = $props();
@@ -36,11 +37,14 @@
 
 	async function loadContents() {
 		try {
+			showLoading('Memuat data...');
 			const { data: cData, count } = await fetchContents(currentPage, itemsPerPage);
 			contents = cData;
 			totalItems = count || cData.length;
 		} catch (error) {
 			showToast('Gagal memuat data konten', 'error');
+		} finally {
+			hideLoading();
 		}
 	}
 
@@ -67,6 +71,7 @@
 
 	async function handleSave() {
 		try {
+			showLoading('Menyimpan data...');
 			isSaving = true;
 			const contentData = { section_name, content_text, icon_name };
 			
@@ -80,6 +85,7 @@
 			showToast('Gagal menyimpan: ' + (error.message || 'Terjadi kesalahan'), 'error');
 		} finally {
 			isSaving = false;
+			hideLoading();
 		}
 	}
 

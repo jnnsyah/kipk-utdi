@@ -398,6 +398,10 @@
 	.table-actions {
 		display: flex;
 		gap: 8px;
+		justify-content: flex-end;
+	}
+	:global(.data-table th:last-child) {
+		text-align: right;
 	}
 	.empty-state {
 		padding: 32px;

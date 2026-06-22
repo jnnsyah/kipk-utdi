@@ -13,7 +13,10 @@ import { redirect } from '@sveltejs/kit';
 export async function GET(event) {
 	const { url, locals } = event;
 	const code = url.searchParams.get('code');
-	const next = url.searchParams.get('next') ?? '/admin/dashboard';
+	let next = url.searchParams.get('next') ?? '/admin/dashboard';
+	if (next === '/' || next === '') {
+		next = '/admin/dashboard';
+	}
 
 	if (!code) {
 		// Tidak ada code → kembali ke login dengan error

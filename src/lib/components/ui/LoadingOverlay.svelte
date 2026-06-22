@@ -5,8 +5,19 @@
 {#if loadingState.visible}
 	<div class="loading-overlay" aria-live="polite">
 		<div class="loading-card">
-			<div class="spinner"></div>
-			<span>{loadingState.message}</span>
+			<div class="loading-header">
+				<span class="loading-title">MEMPROSES DATA</span>
+			</div>
+			<div class="loading-body">
+				<p class="loading-message">{loadingState.message}</p>
+				<div class="progress-container">
+					<div 
+						class="progress-fill" 
+						style="width: {loadingState.progress}%; border-right-width: {loadingState.progress > 0 ? '4px' : '0px'};"
+					></div>
+					<span class="progress-text">{loadingState.progress}%</span>
+				</div>
+			</div>
 		</div>
 	</div>
 {/if}
@@ -24,27 +35,78 @@
 		align-items: center;
 		justify-content: center;
 		z-index: 9999;
+		padding: 16px;
 	}
+
 	.loading-card {
-		background: #fff;
-		border: 4px solid #1b1c19;
-		box-shadow: 8px 8px 0px 0px #1b1c19;
-		padding: 24px 32px;
+		background: var(--color-surface, #faf9f4);
+		border: 4px solid var(--color-on-background, #1b1c19);
+		box-shadow: 8px 8px 0px 0px var(--color-on-background, #1b1c19);
+		width: 100%;
+		max-width: 400px;
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+	}
+
+	.loading-header {
+		padding: 12px 16px;
+		border-bottom: 4px solid var(--color-on-background, #1b1c19);
+		background: var(--color-primary-fixed, #e8ddff);
 		display: flex;
 		align-items: center;
-		gap: 16px;
+	}
+
+	.loading-title {
+		font-family: 'Space Grotesk', sans-serif;
 		font-weight: 700;
-		font-size: 16px;
+		font-size: 13px;
+		letter-spacing: 0.1em;
+		color: var(--color-on-primary-fixed, #21005e);
 	}
-	.spinner {
-		width: 24px;
-		height: 24px;
-		border: 4px solid #1b1c19;
-		border-top-color: var(--primary-color, #674bb5);
-		border-radius: 50%;
-		animation: spin 0.8s linear infinite;
+
+	.loading-body {
+		padding: 24px;
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
 	}
-	@keyframes spin {
-		to { transform: rotate(360deg); }
+
+	.loading-message {
+		margin: 0;
+		font-family: 'Space Grotesk', sans-serif;
+		font-weight: 600;
+		font-size: 15px;
+		color: var(--color-on-background, #1b1c19);
+	}
+
+	.progress-container {
+		position: relative;
+		height: 36px;
+		background: var(--color-surface-container, #efeee9);
+		border: 4px solid var(--color-on-background, #1b1c19);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		overflow: hidden;
+	}
+
+	.progress-fill {
+		position: absolute;
+		left: 0;
+		top: 0;
+		bottom: 0;
+		background: var(--color-primary-container, #a78bfa);
+		border-right: 4px solid var(--color-on-background, #1b1c19);
+		transition: width 0.15s ease-out;
+	}
+
+	.progress-text {
+		position: relative;
+		z-index: 10;
+		font-family: 'Space Grotesk', sans-serif;
+		font-weight: 800;
+		font-size: 15px;
+		color: var(--color-on-background, #1b1c19);
 	}
 </style>

@@ -11,29 +11,23 @@
 	let filteredActivities = $derived(selectedYear === 'Terbaru' ? activities : activities.filter(act => new Date(act.date).getFullYear() === selectedYear));
 
 	function handleIncrementYear() {
-		if (availableYears.length === 0) return;
-		if (selectedYear === 'Terbaru') {
-			selectedYear = availableYears[availableYears.length - 1];
+		if (availableYears.length === 0 || selectedYear === 'Terbaru') return;
+		const idx = availableYears.indexOf(selectedYear);
+		if (idx > 0) {
+			selectedYear = availableYears[idx - 1];
 		} else {
-			const idx = availableYears.indexOf(selectedYear);
-			if (idx > 0) {
-				selectedYear = availableYears[idx - 1];
-			} else {
-				selectedYear = 'Terbaru';
-			}
+			selectedYear = 'Terbaru';
 		}
 	}
 
 	function handleDecrementYear() {
-		if (availableYears.length === 0) return;
+		if (availableYears.length === 0 || selectedYear === availableYears[availableYears.length - 1]) return;
 		if (selectedYear === 'Terbaru') {
 			selectedYear = availableYears[0];
 		} else {
 			const idx = availableYears.indexOf(selectedYear);
 			if (idx < availableYears.length - 1) {
 				selectedYear = availableYears[idx + 1];
-			} else {
-				selectedYear = 'Terbaru';
 			}
 		}
 	}
@@ -417,14 +411,16 @@
 						<div class="flex flex-col">
 							<button 
 								onclick={handleIncrementYear} 
-								class="bg-surface hover:bg-surface-container-high active:bg-primary-fixed border-b-2 border-on-background px-3 py-0.5 text-xs font-bold flex items-center justify-center cursor-pointer select-none"
+								disabled={selectedYear === 'Terbaru'}
+								class="bg-surface hover:bg-surface-container-high active:bg-primary-fixed border-b-2 border-on-background px-3 py-0.5 text-xs font-bold flex items-center justify-center cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-surface disabled:active:bg-surface select-none"
 								title="Tambah Tahun"
 							>
 								+
 							</button>
 							<button 
 								onclick={handleDecrementYear} 
-								class="bg-surface hover:bg-surface-container-high active:bg-primary-fixed px-3 py-0.5 text-xs font-bold flex items-center justify-center cursor-pointer select-none"
+								disabled={availableYears.length === 0 || selectedYear === availableYears[availableYears.length - 1]}
+								class="bg-surface hover:bg-surface-container-high active:bg-primary-fixed px-3 py-0.5 text-xs font-bold flex items-center justify-center cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-surface disabled:active:bg-surface select-none"
 								title="Kurang Tahun"
 							>
 								-

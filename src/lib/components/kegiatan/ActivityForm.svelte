@@ -242,13 +242,39 @@
 
 <!-- Crop Modal -->
 <Modal bind:show={isCropping} title="Potong Gambar (Rasio 16:9)" maxWidth="800px">
-	<div class="crop-container bg-surface-variant p-4 border-4 border-on-background neo-shadow-sm">
-		{#if currentCropFile}
-			<img bind:this={cropImageElement} src={URL.createObjectURL(currentCropFile)} alt="Crop preview" class="max-w-full block">
-		{/if}
+	<div class="crop-modal-body">
+		<div class="crop-container-wrapper">
+			{#if currentCropFile}
+				<img bind:this={cropImageElement} src={URL.createObjectURL(currentCropFile)} alt="Crop preview" class="crop-preview-img">
+			{/if}
+		</div>
+		
+		<!-- Cropper Control Toolbar -->
+		<div class="cropper-toolbar">
+			<Button variant="icon" onclick={() => cropperInstance?.zoom(0.1)} title="Perbesar">
+				<Icon name="zoom_in" size={20} />
+			</Button>
+			<Button variant="icon" onclick={() => cropperInstance?.zoom(-0.1)} title="Perkecil">
+				<Icon name="zoom_out" size={20} />
+			</Button>
+			<div class="toolbar-divider"></div>
+			<Button variant="icon" onclick={() => cropperInstance?.rotate(-90)} title="Putar 90° Kiri">
+				<Icon name="rotate_ccw" size={20} />
+			</Button>
+			<Button variant="icon" onclick={() => cropperInstance?.rotate(90)} title="Putar 90° Kanan">
+				<Icon name="rotate_cw" size={20} />
+			</Button>
+			<div class="toolbar-divider"></div>
+			<Button variant="icon" onclick={() => cropperInstance?.reset()} title="Reset Ulang">
+				<Icon name="restore" size={20} />
+			</Button>
+		</div>
 	</div>
 	{#snippet footer()}
-		<Button variant="secondary" onclick={cancelCrop}>Lewati & Jangan Simpan File Ini</Button>
+		<Button variant="secondary" onclick={cancelCrop}>
+			<Icon name="close" size={18} />
+			Lewati & Batal
+		</Button>
 		<Button variant="primary" onclick={handleCropSave}>
 			<Icon name="crop" size={18} />
 			Potong & Simpan
@@ -390,5 +416,47 @@
 		color: #fff;
 		transform: translate(-1px, -1px);
 		box-shadow: 3px 3px 0px 0px var(--shadow-color);
+	}
+
+	/* Crop Modal Styling */
+	.crop-modal-body {
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+		align-items: center;
+		width: 100%;
+	}
+	.crop-container-wrapper {
+		width: 100%;
+		max-height: 400px;
+		background: #efeee9;
+		border: 4px solid var(--border-color);
+		box-shadow: 6px 6px 0px 0px var(--shadow-color);
+		overflow: hidden;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+	.crop-preview-img {
+		max-width: 100%;
+		max-height: 380px;
+		display: block;
+	}
+	.cropper-toolbar {
+		display: flex;
+		gap: 8px;
+		align-items: center;
+		justify-content: center;
+		background: #fff;
+		padding: 8px 12px;
+		border: 3px solid var(--border-color);
+		box-shadow: 4px 4px 0px 0px var(--shadow-color);
+		margin-top: 8px;
+	}
+	.toolbar-divider {
+		width: 2px;
+		height: 24px;
+		background: var(--border-color);
+		margin: 0 4px;
 	}
 </style>

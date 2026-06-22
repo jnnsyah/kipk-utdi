@@ -3,6 +3,8 @@
 	import Icon from '$lib/components/icons/Icon.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import NavCard from '$lib/components/ui/NavCard.svelte';
+	import { showLoading, hideLoading } from '$lib/stores/loading.svelte.js';
+	import { getSupabase } from '$lib/services/activityService.js';
 
 	/** @type {import('./$types').PageData} */
 	let { data } = $props();
@@ -12,6 +14,20 @@
 	const avatarUrl = $derived(!avatarError ? (user?.user_metadata?.avatar_url ?? null) : null);
 	const displayName = $derived(user?.user_metadata?.full_name ?? user?.email ?? 'Admin');
 	const email = $derived(user?.email ?? '');
+
+	function handleLogout() {
+		showLoading('Mengeluarkan akun...');
+		return async ({ update }) => {
+			try {
+				const supabase = getSupabase();
+				await supabase.auth.signOut();
+			} catch (err) {
+				console.error('Client signout error:', err);
+			}
+			await update();
+			hideLoading();
+		};
+	}
 </script>
 
 <svelte:head>
@@ -51,7 +67,7 @@
 					<p class="user-name">{displayName}</p>
 					<p class="user-email">{email}</p>
 				</div>
-				<form method="POST" action="/admin/login?/logout" use:enhance>
+				<form method="POST" action="/admin/login?/logout" use:enhance={handleLogout}>
 					<Button type="submit" variant="secondary" id="btn-logout" title="Keluar">
 						<Icon name="logout" size={18} />
 						<span class="logout-label">Keluar</span>

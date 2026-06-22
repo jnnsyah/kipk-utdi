@@ -1,5 +1,4 @@
 <script>
-	import { enhance } from '$app/forms';
 	import { page } from '$app/stores';
 	import Icon from '$lib/components/icons/Icon.svelte';
 
@@ -24,6 +23,11 @@
 	});
 
 	let isLoading = $state(false);
+
+	function handleLoginSubmit() {
+		isLoading = true;
+		// No return — allow native form submission for proper OAuth redirect
+	}
 </script>
 
 <svelte:head>
@@ -86,13 +90,7 @@
 				<form
 					method="POST"
 					action="?/login"
-					use:enhance={() => {
-						isLoading = true;
-						return async ({ update }) => {
-							await update();
-							isLoading = false;
-						};
-					}}
+					onsubmit={handleLoginSubmit}
 				>
 					<button type="submit" class="google-btn" disabled={isLoading} id="btn-google-login">
 						{#if isLoading}

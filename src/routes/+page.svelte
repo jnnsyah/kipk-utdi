@@ -300,7 +300,7 @@
 				<div class="min-w-[320px] md:min-w-[450px] bg-surface border-4 border-on-background neo-shadow snap-start flex flex-col group hover:bg-surface-container-low transition-colors duration-300">
 					<div class="h-64 overflow-hidden border-b-4 border-on-background relative">
 						{#if activity.photos && activity.photos.length > 0}
-						<img src={activity.photos[0]} alt={activity.title} class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy">
+						<img src={activity.photos[0]} alt={activity.title} class="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105" loading="lazy">
 						{:else}
 						<div class="w-full h-full bg-surface-variant flex items-center justify-center group-hover:bg-primary-fixed transition-colors duration-300">
 							<span class="material-symbols-outlined text-6xl text-on-surface-variant group-hover:scale-110 transition-transform duration-300">image</span>
@@ -431,12 +431,12 @@
 
 			<div class="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 custom-scrollbar">
 				<div class="space-y-4">
-					<div class="relative aspect-video border-4 border-on-background neo-shadow-sm overflow-hidden bg-surface-variant group">
+					<div class="relative h-64 md:h-[280px] w-full border-4 border-on-background neo-shadow-sm overflow-hidden bg-surface-variant group">
 						{#if selectedActivity.photos && selectedActivity.photos.length > 0}
 						<div class="flex h-full w-full transition-transform duration-300 ease-out" style="transform: translateX(-{activePhotoIndex * 100}%)">
 							{#each selectedActivity.photos as photo}
 							<div class="w-full h-full flex-shrink-0 relative bg-surface-variant">
-								<img src={photo} class="w-full h-full object-cover" alt="Dokumentasi" loading="lazy">
+								<img src={photo} class="w-full h-full object-cover object-center" alt="Dokumentasi" loading="lazy">
 								<div class="absolute inset-0 flex items-center justify-center -z-10 bg-surface-variant">
 									<span class="material-symbols-outlined text-4xl animate-pulse text-on-surface-variant">image</span>
 								</div>

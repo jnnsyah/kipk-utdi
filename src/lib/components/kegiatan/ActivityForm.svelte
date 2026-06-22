@@ -3,7 +3,15 @@
 	import CustomSelect from '$lib/components/CustomSelect.svelte';
 	import CustomDatePicker from '$lib/components/CustomDatePicker.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
+	import Modal from '$lib/components/ui/Modal.svelte';
+	import 'cropperjs/dist/cropper.css';
+	import { onMount } from 'svelte';
+	let Cropper;
 
+	onMount(async () => {
+		const module = await import('cropperjs');
+		Cropper = module.default;
+	});
 	let {
 		isEditing = false,
 		title = $bindable(''),
@@ -32,19 +40,69 @@
 	let dragOver = $state(false);
 	let activeZoomPhoto = $state(null);
 
+	// Crop States
+	let filesToCrop = $state([]);
+	let isCropping = $state(false);
+	let currentCropFile = $state(null);
+	let cropImageElement;
+	let cropperInstance = null;
+
+	function processNextCrop() {
+		if (filesToCrop.length > 0) {
+			currentCropFile = filesToCrop.shift();
+			isCropping = true;
+			setTimeout(() => {
+				if (cropperInstance) cropperInstance.destroy();
+				if (cropImageElement) {
+					cropperInstance = new Cropper(cropImageElement, {
+						aspectRatio: 16 / 9,
+						viewMode: 1,
+						background: false,
+						autoCropArea: 1,
+					});
+				}
+			}, 100);
+		} else {
+			isCropping = false;
+			currentCropFile = null;
+			if (cropperInstance) cropperInstance.destroy();
+			cropperInstance = null;
+		}
+	}
+
+	function cancelCrop() {
+		processNextCrop();
+	}
+
+	function handleCropSave() {
+		if (cropperInstance) {
+			cropperInstance.getCroppedCanvas({
+				width: 1280,
+				height: 720,
+			}).toBlob((blob) => {
+				const newFile = new File([blob], currentCropFile.name, { type: currentCropFile.type });
+				files = [...files, newFile];
+				processNextCrop();
+			}, currentCropFile.type, 0.85);
+		}
+	}
+
 	function handleDrop(e) {
 		e.preventDefault();
 		dragOver = false;
 		if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
 			const newFiles = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
-			files = [...files, ...newFiles];
+			filesToCrop = [...filesToCrop, ...newFiles];
+			if (!isCropping) processNextCrop();
 		}
 	}
 
 	function handleFileSelect(e) {
 		if (e.target.files && e.target.files.length > 0) {
 			const newFiles = Array.from(e.target.files);
-			files = [...files, ...newFiles];
+			filesToCrop = [...filesToCrop, ...newFiles];
+			if (!isCropping) processNextCrop();
+			e.target.value = null; // reset input
 		}
 	}
 
@@ -181,6 +239,22 @@
 		</div>
 	</div>
 {/if}
+
+<!-- Crop Modal -->
+<Modal bind:show={isCropping} title="Potong Gambar (Rasio 16:9)" maxWidth="800px">
+	<div class="crop-container bg-surface-variant p-4 border-4 border-on-background neo-shadow-sm">
+		{#if currentCropFile}
+			<img bind:this={cropImageElement} src={URL.createObjectURL(currentCropFile)} alt="Crop preview" class="max-w-full block">
+		{/if}
+	</div>
+	{#snippet footer()}
+		<Button variant="secondary" onclick={cancelCrop}>Lewati & Jangan Simpan File Ini</Button>
+		<Button variant="primary" onclick={handleCropSave}>
+			<Icon name="crop" size={18} />
+			Potong & Simpan
+		</Button>
+	{/snippet}
+</Modal>
 
 <style>
 	.form-group { margin-bottom: 20px; }

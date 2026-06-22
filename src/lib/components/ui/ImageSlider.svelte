@@ -84,8 +84,9 @@
 	.photo-frame {
 		position: relative;
 		flex: 1;
-		aspect-ratio: 16 / 9;
+		height: 280px;
 		display: grid;
+		overflow: hidden;
 	}
 
 	.slider-img-wrapper {
@@ -102,6 +103,7 @@
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
+		object-position: center;
 	}
 
 	.slider-btn {

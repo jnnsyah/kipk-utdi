@@ -1,2 +1,40 @@
 @import 'tailwindcss';
 @import '$lib/styles/neo-brutalism.css';
+
+@theme {
+  --color-background: #faf9f4;
+  --color-on-background: #1b1c19;
+  --color-primary: #674bb5;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #a78bfa;
+  --color-on-primary-container: #3c1989;
+  --color-primary-fixed: #e8ddff;
+  --color-on-primary-fixed: #21005e;
+  --color-secondary: #0060a8;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #6aaeff;
+  --color-on-secondary-container: #004174;
+  --color-tertiary-fixed: #e4e2e1;
+  --color-on-tertiary-fixed-variant: #474747;
+  --color-surface: #faf9f4;
+  --color-surface-variant: #e3e3de;
+  --color-surface-container: #efeee9;
+  --color-surface-container-low: #f5f4ef;
+  --color-surface-container-high: #e9e8e3;
+  --color-on-surface: #1b1c19;
+  --color-on-surface-variant: #494552;
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+
+  --spacing-gutter: 24px;
+  --spacing-margin-desktop: 64px;
+  --spacing-container-max: 1280px;
+  --spacing-margin-mobile: 16px;
+
+  --font-display: "Space Grotesk", sans-serif;
+  --font-headline-lg: "Space Grotesk", sans-serif;
+  --font-headline-md: "Space Grotesk", sans-serif;
+  --font-body-lg: "Space Grotesk", sans-serif;
+  --font-body-md: "Space Grotesk", sans-serif;
+  --font-label-bold: "Space Grotesk", sans-serif;
+}

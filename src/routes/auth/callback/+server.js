@@ -11,12 +11,8 @@ import { redirect } from '@sveltejs/kit';
  *   4. Jika ada → redirect ke dashboard.
  */
 export async function GET(event) {
-	const { url, locals } = event;
+	const { url, locals, cookies } = event;
 	const code = url.searchParams.get('code');
-	let next = url.searchParams.get('next') ?? '/admin/dashboard';
-	if (next === '/' || next === '') {
-		next = '/admin/dashboard';
-	}
 
 	if (!code) {
 		// Tidak ada code → kembali ke login dengan error
@@ -53,6 +49,6 @@ export async function GET(event) {
 		);
 	}
 
-	// Berhasil → redirect ke dashboard
-	throw redirect(303, next);
+	// Berhasil → selalu redirect ke dashboard
+	throw redirect(303, '/admin/dashboard');
 }

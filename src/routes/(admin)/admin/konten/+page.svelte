@@ -6,6 +6,7 @@
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import BackLink from '$lib/components/ui/BackLink.svelte';
 	import DataTable from '$lib/components/ui/DataTable.svelte';
+	import AdminPageLayout from '$lib/components/ui/AdminPageLayout.svelte';
 	import ContentForm from '$lib/components/konten/ContentForm.svelte';
 	import { fetchContents, updateContent } from '$lib/services/contentService.js';
 	import { showToast } from '$lib/stores/toast.svelte.js';

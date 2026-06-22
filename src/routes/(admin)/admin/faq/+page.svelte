@@ -5,6 +5,7 @@
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import BackLink from '$lib/components/ui/BackLink.svelte';
 	import DataTable from '$lib/components/ui/DataTable.svelte';
+	import AdminPageLayout from '$lib/components/ui/AdminPageLayout.svelte';
 	import FaqForm from '$lib/components/faq/FaqForm.svelte';
 	import { fetchFaqs, addFaq, updateFaq, deleteFaq } from '$lib/services/faqService.js';
 	import { showToast } from '$lib/stores/toast.svelte.js';

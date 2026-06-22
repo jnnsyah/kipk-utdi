@@ -5,6 +5,7 @@
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import BackLink from '$lib/components/ui/BackLink.svelte';
 	import DataTable from '$lib/components/ui/DataTable.svelte';
+	import AdminPageLayout from '$lib/components/ui/AdminPageLayout.svelte';
 	import WhitelistForm from '$lib/components/whitelist/WhitelistForm.svelte';
 	import { fetchWhitelist, addWhitelist, deleteWhitelist } from '$lib/services/whitelistService.js';
 	import { showToast } from '$lib/stores/toast.svelte.js';

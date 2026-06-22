@@ -27,20 +27,35 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: flex-end;
-		margin-bottom: 24px;
+		margin-bottom: 16px;
 		background: #fff;
 		border: 4px solid var(--border-color);
 		box-shadow: 6px 6px 0px 0px var(--shadow-color);
-		padding: 24px;
+		padding: 16px;
 		flex-wrap: wrap;
-		gap: 16px;
+		gap: 12px;
+	}
+	@media (min-width: 768px) {
+		.page-header {
+			padding: 24px;
+			margin-bottom: 24px;
+			gap: 16px;
+		}
 	}
 	.page-title {
-		margin: 0 0 8px;
-		font-size: 28px;
+		margin: 0 0 4px;
+		font-size: 20px;
+	}
+	@media (min-width: 768px) {
+		.page-title {
+			font-size: 28px;
+			margin-bottom: 8px;
+		}
 	}
 	.page-subtitle {
 		margin: 0;
+		font-size: 13px;
 		color: #7a7583;
+		line-height: 1.4;
 	}
 </style>

@@ -8,6 +8,7 @@
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import BackLink from '$lib/components/ui/BackLink.svelte';
 	import DataTable from '$lib/components/ui/DataTable.svelte';
+	import AdminPageLayout from '$lib/components/ui/AdminPageLayout.svelte';
 	import ActivityForm from '$lib/components/kegiatan/ActivityForm.svelte';
 	import CustomSelect from '$lib/components/CustomSelect.svelte';
 	import { fetchActivities, addActivity, updateActivity, deleteActivity } from '$lib/services/activityService.js';

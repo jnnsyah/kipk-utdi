@@ -134,91 +134,73 @@
 	<title>Whitelist Admin — KIP-K UTDI</title>
 </svelte:head>
 
-<div class="whitelist-page">
-	<div class="grid-bg" aria-hidden="true"></div>
-
-	<div class="whitelist-layout">
-		<!-- Main Content Panel -->
-		<div class="main-content-panel">
-			<BackLink />
-			<PageHeader 
-				title="Whitelist Admin" 
-				subtitle="Kelola alamat email Google yang diizinkan untuk mengakses dashboard admin"
-				buttonLabel="Tambah Email"
-				buttonIcon="add"
-				onaction={openAddDrawer}
+<AdminPageLayout
+	title="Whitelist Admin"
+	subtitle="Kelola alamat email Google yang diizinkan untuk mengakses dashboard admin"
+	buttonLabel="Tambah Email"
+	buttonIcon="add"
+	onaction={openAddDrawer}
+	showDrawer={isAdding}
+	drawerTitle="Tambah Email Whitelist"
+	ondrawerclose={() => isAdding = false}
+>
+	<!-- Search Bar -->
+	<div class="filter-bar">
+		<div class="search-input-wrapper">
+			<Icon name="search" size={18} class="search-icon" />
+			<input 
+				type="text" 
+				placeholder="Cari email admin..." 
+				bind:value={searchQuery}
+				oninput={handleSearchInput}
 			/>
-
-			<!-- Search Bar -->
-			<div class="filter-bar">
-				<div class="search-input-wrapper">
-					<Icon name="search" size={18} class="search-icon" />
-					<input 
-						type="text" 
-						placeholder="Cari email admin..." 
-						bind:value={searchQuery}
-						oninput={handleSearchInput}
-					/>
-				</div>
-			</div>
-
-			<DataTable headers={['Tanggal Ditambahkan', 'Alamat Email', 'Aksi']}>
-				{#each whitelist as entry}
-					<tr>
-						<td style="font-size: 13px; width: 220px;">{formatDate(entry.created_at)}</td>
-						<td style="font-weight: 600;">{entry.email}</td>
-						<td>
-							<div class="table-actions">
-								<Button variant="icon" onclick={() => openViewModal(entry)} title="Lihat">
-									<Icon name="visibility" size={18} />
-								</Button>
-								<Button variant="icon" class="btn-icon-danger" onclick={() => openDeleteModal(entry)} title="Hapus">
-									<Icon name="delete" size={18} color="#d32f2f" />
-								</Button>
-							</div>
-						</td>
-					</tr>
-				{/each}
-				{#if whitelist.length === 0}
-					<tr>
-						<td colspan="3">
-							<div class="empty-state">Belum ada email terdaftar di whitelist.</div>
-						</td>
-					</tr>
-				{/if}
-
-				{#snippet footer()}
-					{#if totalPages > 1}
-						<div class="pagination">
-							<Button variant="secondary" disabled={currentPage === 1} onclick={prevPage}>Sebelumnya</Button>
-							<span class="page-info">Halaman {currentPage} dari {totalPages}</span>
-							<Button variant="secondary" disabled={currentPage === totalPages} onclick={nextPage}>Selanjutnya</Button>
-						</div>
-					{/if}
-				{/snippet}
-			</DataTable>
 		</div>
-
-		<!-- Drawer Panel for Add (Slider Approach) -->
-		{#if isAdding}
-			<div class="drawer-panel">
-				<div class="drawer-header">
-					<h2 class="drawer-title">Tambah Email Whitelist</h2>
-					<Button variant="icon" onclick={() => isAdding = false} title="Tutup">
-						<Icon name="close" size={20} />
-					</Button>
-				</div>
-				<div class="drawer-body">
-					<WhitelistForm 
-						bind:email
-						isSaving={isSaving}
-						onsubmit={handleSave} oncancel={() => isAdding = false}
-					/>
-				</div>
-			</div>
-		{/if}
 	</div>
-</div>
+
+	<DataTable headers={['Tanggal Ditambahkan', 'Alamat Email', 'Aksi']}>
+		{#each whitelist as entry}
+			<tr>
+				<td style="font-size: 13px; width: 220px;">{formatDate(entry.created_at)}</td>
+				<td style="font-weight: 600;">{entry.email}</td>
+				<td>
+					<div class="table-actions">
+						<Button variant="icon" onclick={() => openViewModal(entry)} title="Lihat">
+							<Icon name="visibility" size={18} />
+						</Button>
+						<Button variant="icon" class="btn-icon-danger" onclick={() => openDeleteModal(entry)} title="Hapus">
+							<Icon name="delete" size={18} color="#d32f2f" />
+						</Button>
+					</div>
+				</td>
+			</tr>
+		{/each}
+		{#if whitelist.length === 0}
+			<tr>
+				<td colspan="3">
+					<div class="empty-state">Belum ada email terdaftar di whitelist.</div>
+				</td>
+			</tr>
+		{/if}
+
+		{#snippet footer()}
+			{#if totalPages > 1}
+				<div class="pagination">
+					<Button variant="secondary" disabled={currentPage === 1} onclick={prevPage}>Sebelumnya</Button>
+					<span class="page-info">Halaman {currentPage} dari {totalPages}</span>
+					<Button variant="secondary" disabled={currentPage === totalPages} onclick={nextPage}>Selanjutnya</Button>
+				</div>
+			{/if}
+		{/snippet}
+	</DataTable>
+
+	{#snippet drawerContent()}
+		<WhitelistForm 
+			bind:email
+			isSaving={isSaving}
+			onsubmit={handleSave} oncancel={() => isAdding = false}
+		/>
+	{/snippet}
+</AdminPageLayout>
 
 <!-- View Modal -->
 <Modal bind:show={isViewing} title="Detail Whitelist" maxWidth="500px">
@@ -254,73 +236,10 @@
 </Modal>
 
 <style>
-	.whitelist-page {
-		min-height: 100vh;
-		padding: 32px 24px;
-		position: relative;
-	}
-	.whitelist-layout {
-		display: flex;
-		gap: 24px;
-		max-width: 1400px;
-		margin: 0 auto;
-		position: relative;
-		z-index: 10;
-		align-items: flex-start;
-	}
-	.main-content-panel {
-		flex: 1;
-		min-width: 0;
-		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-	}
-	.drawer-panel {
-		width: 580px;
-		flex-shrink: 0;
-		background: var(--surface-white, #fff);
-		border: 4px solid var(--border-color, #1b1c19);
-		box-shadow: 8px 8px 0px 0px var(--shadow-color, #1b1c19);
-		display: flex;
-		flex-direction: column;
-		height: fit-content;
-		position: sticky;
-		top: 32px;
-		animation: slideIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-	}
-	@keyframes slideIn {
-		from {
-			opacity: 0;
-			transform: translateX(40px);
-		}
-		to {
-			opacity: 1;
-			transform: translateX(0);
-		}
-	}
-	.drawer-header {
-		padding: 16px 20px;
-		border-bottom: 3px solid var(--border-color, #1b1c19);
-		background: var(--primary-light, #e8ddff);
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-	}
-	.drawer-title {
-		margin: 0;
-		font-size: 18px;
-		font-weight: 700;
-	}
-	.drawer-body {
-		padding: 20px;
-		max-height: 80vh;
-		overflow-y: auto;
-	}
 	.table-actions {
 		display: flex;
 		gap: 8px;
 		justify-content: flex-end;
-	}
-	:global(.data-table th:last-child) {
-		text-align: right;
 	}
 	.empty-state {
 		padding: 32px;
@@ -338,6 +257,8 @@
 		padding: 16px;
 		background: #faf9f4;
 		border-top: 2px solid #1b1c19;
+		flex-wrap: wrap;
+		gap: 12px;
 	}
 	.page-info {
 		font-weight: 700;
@@ -397,16 +318,10 @@
 		box-shadow: 4px 4px 0px 0px var(--primary-color);
 	}
 
-	/* Responsive styles */
-	@media (max-width: 1024px) {
-		.whitelist-layout {
+	@media (max-width: 600px) {
+		.filter-bar {
 			flex-direction: column;
-		}
-		.drawer-panel {
-			width: 100%;
-			position: relative;
-			top: 0;
-			margin-top: 24px;
+			align-items: stretch;
 		}
 	}
 </style>

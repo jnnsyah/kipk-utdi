@@ -156,206 +156,118 @@
 	<title>Kelola FAQ — KIP-K UTDI</title>
 </svelte:head>
 
-<div class="faq-page">
-	<div class="grid-bg" aria-hidden="true"></div>
-	
-
-
-	<div class="faq-layout">
-		<!-- Main Content Panel -->
-		<div class="main-content-panel">
-			<BackLink />
-			<PageHeader 
-				title="Kelola FAQ" 
-				subtitle="Kelola daftar pertanyaan yang sering diajukan seputar KIP-K"
-				buttonLabel="Tambah FAQ"
-				buttonIcon="add"
-				onaction={openAddDrawer}
+<AdminPageLayout
+	title="Kelola FAQ"
+	subtitle="Kelola daftar pertanyaan yang sering diajukan seputar KIP-K"
+	buttonLabel="Tambah FAQ"
+	buttonIcon="add"
+	onaction={openAddDrawer}
+	showDrawer={isAdding || isEditing}
+	drawerTitle={isEditing ? 'Edit FAQ' : 'Tambah FAQ Baru'}
+	ondrawerclose={() => { isAdding = false; isEditing = false; }}
+>
+	<!-- Search Bar -->
+	<div class="filter-bar">
+		<div class="search-input-wrapper">
+			<Icon name="search" size={18} class="search-icon" />
+			<input 
+				type="text" 
+				placeholder="Cari pertanyaan atau jawaban..." 
+				bind:value={searchQuery}
+				oninput={handleSearchInput}
 			/>
-
-			<!-- Search Bar -->
-			<div class="filter-bar">
-				<div class="search-input-wrapper">
-					<Icon name="search" size={18} class="search-icon" />
-					<input 
-						type="text" 
-						placeholder="Cari pertanyaan atau jawaban..." 
-						bind:value={searchQuery}
-						oninput={handleSearchInput}
-					/>
-				</div>
-			</div>
-
-			<DataTable headers={['Order', 'Pertanyaan', 'Jawaban', 'Aksi']}>
-				{#each faqs as faq}
-					<tr>
-						<td style="font-weight: 700; width: 80px;">{faq.order}</td>
-						<td style="font-weight: 600; max-width: 250px;">{faq.question}</td>
-						<td style="font-size: 13px; max-width: 350px;">{truncate(faq.answer, 80)}</td>
-						<td>
-							<div class="table-actions">
-								<Button variant="icon" onclick={() => openViewModal(faq)} title="Lihat">
-									<Icon name="visibility" size={18} />
-								</Button>
-								<Button variant="icon" onclick={() => openEditDrawer(faq)} title="Edit">
-									<Icon name="edit" size={18} />
-								</Button>
-								<Button variant="icon" class="btn-icon-danger" onclick={() => openDeleteModal(faq)} title="Hapus">
-									<Icon name="delete" size={18} color="#d32f2f" />
-								</Button>
-							</div>
-						</td>
-					</tr>
-				{/each}
-				{#if faqs.length === 0}
-					<tr>
-						<td colspan="4">
-							<div class="empty-state">Belum ada data FAQ.</div>
-						</td>
-					</tr>
-				{/if}
-
-				{#snippet footer()}
-					{#if totalPages > 1}
-						<div class="pagination">
-							<Button variant="secondary" disabled={currentPage === 1} onclick={prevPage}>Sebelumnya</Button>
-							<span class="page-info">Halaman {currentPage} dari {totalPages}</span>
-							<Button variant="secondary" disabled={currentPage === totalPages} onclick={nextPage}>Selanjutnya</Button>
-						</div>
-					{/if}
-				{/snippet}
-			</DataTable>
 		</div>
-
-		<!-- Drawer Panel for Add / Edit (Slider Approach) -->
-		{#if isAdding || isEditing}
-			<div class="drawer-panel">
-				<div class="drawer-header">
-					<h2 class="drawer-title">{isEditing ? 'Edit FAQ' : 'Tambah FAQ Baru'}</h2>
-					<Button variant="icon" onclick={() => { isAdding = false; isEditing = false; }} title="Tutup">
-						<Icon name="close" size={20} />
-					</Button>
-				</div>
-				<div class="drawer-body">
-					{#if isAdding}
-						<FaqForm 
-							bind:question bind:answer bind:order
-							isSaving={isLoading}
-							onsubmit={handleSave} oncancel={() => isAdding = false}
-						/>
-					{:else if isEditing}
-						<FaqForm 
-							isEditing={true}
-							bind:question bind:answer bind:order
-							isSaving={isLoading}
-							onsubmit={handleSave} oncancel={() => isEditing = false}
-						/>
-					{/if}
-				</div>
-			</div>
-		{/if}
 	</div>
-</div>
 
-<!-- View Modal -->
-<Modal bind:show={isViewing} title="Detail FAQ" maxWidth="600px">
-	{#if currentFaq}
-		<div class="detail-view">
-			<div class="detail-meta">
-				<span class="meta-item"><Icon name="calendar_today" size={16}/> Order: {currentFaq.order}</span>
-			</div>
-			<h2 class="detail-title">{currentFaq.question}</h2>
-			
-			<div class="detail-desc">
-				{currentFaq.answer}
-			</div>
-		</div>
-	{/if}
-</Modal>
+	<DataTable headers={['Order', 'Pertanyaan', 'Jawaban', 'Aksi']}>
+		{#each faqs as faq}
+			<tr>
+				<td style="font-weight: 700; width: 80px;">{faq.order}</td>
+				<td style="font-weight: 600; max-width: 250px;">{faq.question}</td>
+				<td style="font-size: 13px; max-width: 350px;">{truncate(faq.answer, 80)}</td>
+				<td>
+					<div class="table-actions">
+						<Button variant="icon" onclick={() => openViewModal(faq)} title="Lihat">
+							<Icon name="visibility" size={18} />
+						</Button>
+						<Button variant="icon" onclick={() => openEditDrawer(faq)} title="Edit">
+							<Icon name="edit" size={18} />
+						</Button>
+						<Button variant="icon" class="btn-icon-danger" onclick={() => openDeleteModal(faq)} title="Hapus">
+							<Icon name="delete" size={18} color="#d32f2f" />
+						</Button>
+					</div>
+				</td>
+			</tr>
+		{/each}
+		{#if faqs.length === 0}
+			<tr>
+				<td colspan="4">
+					<div class="empty-state">Belum ada data FAQ.</div>
+				</td>
+			</tr>
+		{/if}
 
-<!-- Delete Modal -->
-<Modal bind:show={isDeleting} title="Konfirmasi Hapus" maxWidth="400px">
-	{#if currentFaq}
-		<p>Apakah Anda yakin ingin menghapus FAQ order <strong>#{currentFaq.order}</strong>?</p>
-		<p style="font-size: 13px; color: var(--danger-color, #d32f2f); margin-top: 8px; font-weight: 500;">
-			"{truncate(currentFaq.question, 60)}"
-		</p>
-		<p style="font-size: 12px; color: #666; margin-top: 8px;">Tindakan ini tidak dapat dibatalkan.</p>
-	{/if}
-	{#snippet footer()}
-		<Button variant="secondary" onclick={() => isDeleting = false}>Batal</Button>
-		<Button variant="danger" onclick={confirmDelete}>Hapus</Button>
+		{#snippet footer()}
+			{#if totalPages > 1}
+				<div class="pagination">
+					<Button variant="secondary" disabled={currentPage === 1} onclick={prevPage}>Sebelumnya</Button>
+					<span class="page-info">Halaman {currentPage} dari {totalPages}</span>
+					<Button variant="secondary" disabled={currentPage === totalPages} onclick={nextPage}>Selanjutnya</Button>
+				</div>
+			{/if}
+		{/snippet}
+	</DataTable>
+
+	{#snippet drawerContent()}
+		{#if isAdding}
+			<FaqForm 
+				bind:question bind:answer bind:order
+				isSaving={isLoading}
+				onsubmit={handleSave} oncancel={() => isAdding = false}
+			/>
+		{:else if isEditing}
+			<FaqForm 
+				isEditing={true}
+				bind:question bind:answer bind:order
+				isSaving={isLoading}
+				onsubmit={handleSave} oncancel={() => isEditing = false}
+			/>
+		{/if}
 	{/snippet}
-</Modal>
+</AdminPageLayout>
+
+{#if isViewing && currentFaq}
+	<Modal title="Detail FAQ" onclose={() => isViewing = false}>
+		<div class="detail-title">{currentFaq.question}</div>
+		<div class="detail-meta">
+			<span class="meta-item"><Icon name="sort" size={16}/> Order: {currentFaq.order}</span>
+			<span class="meta-item"><Icon name="schedule" size={16}/> Ditambahkan: {new Date(currentFaq.created_at).toLocaleDateString('id-ID')}</span>
+		</div>
+		<div class="detail-desc">{currentFaq.answer}</div>
+		
+		{#snippet actions()}
+			<Button variant="secondary" onclick={() => isViewing = false}>Tutup</Button>
+		{/snippet}
+	</Modal>
+{/if}
+
+{#if isDeleting && currentFaq}
+	<Modal title="Konfirmasi Hapus" onclose={() => isDeleting = false}>
+		<p>Apakah Anda yakin ingin menghapus FAQ <strong>"{currentFaq.question}"</strong>?</p>
+		<p style="color: var(--danger-color); font-size: 13px; margin-top: 8px;">Tindakan ini tidak dapat dibatalkan.</p>
+		{#snippet actions()}
+			<Button variant="secondary" onclick={() => isDeleting = false}>Batal</Button>
+			<Button variant="primary" style="background: var(--danger-color);" onclick={confirmDelete}>Hapus</Button>
+		{/snippet}
+	</Modal>
+{/if}
 
 <style>
-	.faq-page {
-		min-height: 100vh;
-		padding: 32px 24px;
-		position: relative;
-	}
-	.faq-layout {
-		display: flex;
-		gap: 24px;
-		max-width: 1400px;
-		margin: 0 auto;
-		position: relative;
-		z-index: 10;
-		align-items: flex-start;
-	}
-	.main-content-panel {
-		flex: 1;
-		min-width: 0;
-		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-	}
-	.drawer-panel {
-		width: 580px;
-		flex-shrink: 0;
-		background: var(--surface-white, #fff);
-		border: 4px solid var(--border-color, #1b1c19);
-		box-shadow: 8px 8px 0px 0px var(--shadow-color, #1b1c19);
-		display: flex;
-		flex-direction: column;
-		height: fit-content;
-		position: sticky;
-		top: 32px;
-		animation: slideIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-	}
-	@keyframes slideIn {
-		from {
-			opacity: 0;
-			transform: translateX(40px);
-		}
-		to {
-			opacity: 1;
-			transform: translateX(0);
-		}
-	}
-	.drawer-header {
-		padding: 16px 20px;
-		border-bottom: 3px solid var(--border-color, #1b1c19);
-		background: var(--primary-light, #e8ddff);
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-	}
-	.drawer-title {
-		margin: 0;
-		font-size: 18px;
-		font-weight: 700;
-	}
-	.drawer-body {
-		padding: 20px;
-		max-height: 80vh;
-		overflow-y: auto;
-	}
 	.table-actions {
 		display: flex;
 		gap: 8px;
 		justify-content: flex-end;
-	}
-	:global(.data-table th:last-child) {
-		text-align: right;
 	}
 	.empty-state {
 		padding: 32px;
@@ -373,6 +285,8 @@
 		padding: 16px;
 		background: #faf9f4;
 		border-top: 2px solid #1b1c19;
+		flex-wrap: wrap;
+		gap: 12px;
 	}
 	.page-info {
 		font-weight: 700;
@@ -423,19 +337,11 @@
 		border-color: var(--primary-color);
 		box-shadow: 4px 4px 0px 0px var(--primary-color);
 	}
-
-
-
-	/* Responsive styles */
-	@media (max-width: 1024px) {
-		.faq-layout {
+	
+	@media (max-width: 600px) {
+		.filter-bar {
 			flex-direction: column;
-		}
-		.drawer-panel {
-			width: 100%;
-			position: relative;
-			top: 0;
-			margin-top: 24px;
+			align-items: stretch;
 		}
 	}
 </style>

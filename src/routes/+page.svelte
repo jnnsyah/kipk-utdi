@@ -210,7 +210,7 @@
 		<div class="relative w-full">
 			<div class="absolute inset-0 z-0 grid-bg-header"></div>
 			
-			<nav class="fixed left-1/2 w-[90%] md:w-max z-50 bg-surface border-4 border-on-background shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] rounded-full px-8 transition-all duration-500 {isFooterVisible ? '-top-32' : 'top-6'} {isDrawerOpen ? 'max-md:-translate-x-1/2 md:-translate-x-[calc(50%+252px)]' : '-translate-x-1/2'}">
+			<nav class="fixed left-1/2 w-[90%] md:w-max z-50 bg-surface border-4 border-on-background shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] {mobileMenuOpen ? 'rounded-[32px]' : 'rounded-full'} px-8 transition-all duration-500 {isFooterVisible ? '-top-32' : 'top-6'} {isDrawerOpen ? 'max-md:-translate-x-1/2 md:-translate-x-[calc(50%+252px)]' : '-translate-x-1/2'}">
 				<div class="flex justify-between items-center gap-12 py-3">
 					<div class="flex items-center gap-3 pr-4">
 						<img src={favicon} alt="Logo KIP-K UTDI" class="h-10 w-auto" />
@@ -222,16 +222,16 @@
 						<a class="font-label-bold text-label-bold text-on-background px-3 py-2 rounded-lg border-2 border-transparent hover:border-on-background hover:bg-tertiary-fixed hover:-translate-y-1 transition-all" href="#kegiatan">Kegiatan</a>
 						<a class="font-label-bold text-label-bold text-on-background px-3 py-2 rounded-lg border-2 border-transparent hover:border-on-background hover:bg-primary-fixed hover:-translate-y-1 transition-all" href="#faq">FAQ</a>
 					</div>
-					<button class="md:hidden p-2 border-2 border-on-background bg-surface-container hover:bg-primary-container hover:text-on-primary-container hover:rotate-90 transition-all duration-300" onclick={() => mobileMenuOpen = !mobileMenuOpen}>
-						<span class="material-symbols-outlined">menu</span>
+					<button class="md:hidden p-2 border-2 border-on-background bg-surface-container hover:bg-primary-container hover:text-on-primary-container transition-all duration-300 rounded-lg {mobileMenuOpen ? 'rotate-90' : ''}" onclick={() => mobileMenuOpen = !mobileMenuOpen}>
+						<span class="material-symbols-outlined">{mobileMenuOpen ? 'close' : 'menu'}</span>
 					</button>
 				</div>
 				{#if mobileMenuOpen}
-				<div class="md:hidden flex flex-col gap-4 mt-4 pb-4 px-2">
-					<a class="font-label-bold text-primary" href="#home" onclick={() => mobileMenuOpen = false}>Beranda</a>
-					<a class="font-label-bold text-on-background" href="#tentang" onclick={() => mobileMenuOpen = false}>Tentang</a>
-					<a class="font-label-bold text-on-background" href="#kegiatan" onclick={() => mobileMenuOpen = false}>Kegiatan</a>
-					<a class="font-label-bold text-on-background" href="#faq" onclick={() => mobileMenuOpen = false}>FAQ</a>
+				<div class="md:hidden flex flex-col gap-2 mt-2 pb-6 px-2">
+					<a class="font-label-bold text-primary px-4 py-3 border-2 border-transparent hover:border-on-background hover:bg-primary-fixed rounded-xl transition-all" href="#home" onclick={() => mobileMenuOpen = false}>Beranda</a>
+					<a class="font-label-bold text-on-background px-4 py-3 border-2 border-transparent hover:border-on-background hover:bg-secondary-container rounded-xl transition-all" href="#tentang" onclick={() => mobileMenuOpen = false}>Tentang</a>
+					<a class="font-label-bold text-on-background px-4 py-3 border-2 border-transparent hover:border-on-background hover:bg-tertiary-fixed rounded-xl transition-all" href="#kegiatan" onclick={() => mobileMenuOpen = false}>Kegiatan</a>
+					<a class="font-label-bold text-on-background px-4 py-3 border-2 border-transparent hover:border-on-background hover:bg-primary-fixed rounded-xl transition-all" href="#faq" onclick={() => mobileMenuOpen = false}>FAQ</a>
 				</div>
 				{/if}
 			</nav>

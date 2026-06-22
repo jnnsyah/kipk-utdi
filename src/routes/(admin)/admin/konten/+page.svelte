@@ -121,88 +121,68 @@
 	<title>Kelola Konten — KIP-K UTDI</title>
 </svelte:head>
 
-<div class="konten-page">
-	<div class="grid-bg" aria-hidden="true"></div>
-	
-	<div class="konten-layout">
-		<!-- Main Content Area -->
-		<div class="main-content-panel">
-			<BackLink />
-			<PageHeader 
-				title="Manajemen Konten Situs" 
-				subtitle="Kelola teks, ikon, dan bagian dari situs web"
-			/>
-
-
-
-			<DataTable headers={['Nama Bagian', 'Ikon', 'Isi Teks', 'Diperbarui', 'Aksi']}>
-				{#each contents as content}
-					<tr>
-						<td style="font-weight: 600; text-transform: capitalize;">{content.section_name}</td>
-						<td>
-							{#if content.icon_name}
-								<div class="icon-preview" title={content.icon_name}>
-									<Icon name={content.icon_name} size={20} />
-								</div>
-							{:else}
-								-
-							{/if}
-						</td>
-						<td style="font-size: 13px; max-width: 300px;">{truncate(content.content_text, 60)}</td>
-						<td style="white-space: nowrap; font-size: 13px;">{formatDate(content.updated_at)}</td>
-						<td>
-							<div class="table-actions">
-								<Button variant="icon" onclick={() => openViewModal(content)} title="Lihat">
-									<Icon name="visibility" size={18} />
-								</Button>
-								<Button variant="icon" onclick={() => openEditDrawer(content)} title="Edit">
-									<Icon name="edit" size={18} />
-								</Button>
-							</div>
-						</td>
-					</tr>
-				{/each}
-				{#if contents.length === 0}
-					<tr>
-						<td colspan="5">
-							<div class="empty-state">Belum ada data konten.</div>
-						</td>
-					</tr>
-				{/if}
-
-				{#snippet footer()}
-					{#if totalPages > 1}
-						<div class="pagination">
-							<Button variant="secondary" disabled={currentPage === 1} onclick={prevPage}>Sebelumnya</Button>
-							<span class="page-info">Halaman {currentPage} dari {totalPages}</span>
-							<Button variant="secondary" disabled={currentPage === totalPages} onclick={nextPage}>Selanjutnya</Button>
+<AdminPageLayout
+	title="Manajemen Konten Situs"
+	subtitle="Kelola teks, ikon, dan bagian dari situs web"
+	showDrawer={isEditing}
+	drawerTitle="Edit Konten"
+	ondrawerclose={() => isEditing = false}
+>
+	<DataTable headers={['Nama Bagian', 'Ikon', 'Isi Teks', 'Diperbarui', 'Aksi']}>
+		{#each contents as content}
+			<tr>
+				<td style="font-weight: 600; text-transform: capitalize;">{content.section_name}</td>
+				<td>
+					{#if content.icon_name}
+						<div class="icon-preview" title={content.icon_name}>
+							<Icon name={content.icon_name} size={20} />
 						</div>
+					{:else}
+						-
 					{/if}
-				{/snippet}
-			</DataTable>
-		</div>
-
-		<!-- Drawer Panel for Edit (Slider Approach) -->
-		{#if isEditing}
-			<div class="drawer-panel">
-				<div class="drawer-header">
-					<h2 class="drawer-title">Edit Konten</h2>
-					<Button variant="icon" onclick={() => isEditing = false} title="Tutup">
-						<Icon name="close" size={20} />
-					</Button>
-				</div>
-				<div class="drawer-body">
-					<ContentForm 
-						{isEditing}
-						bind:section_name bind:content_text bind:icon_name
-						{isSaving}
-						onsubmit={handleSave} oncancel={() => isEditing = false}
-					/>
-				</div>
-			</div>
+				</td>
+				<td style="font-size: 13px; max-width: 300px;">{truncate(content.content_text, 60)}</td>
+				<td style="white-space: nowrap; font-size: 13px;">{formatDate(content.updated_at)}</td>
+				<td>
+					<div class="table-actions">
+						<Button variant="icon" onclick={() => openViewModal(content)} title="Lihat">
+							<Icon name="visibility" size={18} />
+						</Button>
+						<Button variant="icon" onclick={() => openEditDrawer(content)} title="Edit">
+							<Icon name="edit" size={18} />
+						</Button>
+					</div>
+				</td>
+			</tr>
+		{/each}
+		{#if contents.length === 0}
+			<tr>
+				<td colspan="5">
+					<div class="empty-state">Belum ada data konten.</div>
+				</td>
+			</tr>
 		{/if}
-	</div>
-</div>
+
+		{#snippet footer()}
+			{#if totalPages > 1}
+				<div class="pagination">
+					<Button variant="secondary" disabled={currentPage === 1} onclick={prevPage}>Sebelumnya</Button>
+					<span class="page-info">Halaman {currentPage} dari {totalPages}</span>
+					<Button variant="secondary" disabled={currentPage === totalPages} onclick={nextPage}>Selanjutnya</Button>
+				</div>
+			{/if}
+		{/snippet}
+	</DataTable>
+
+	{#snippet drawerContent()}
+		<ContentForm 
+			{isEditing}
+			bind:section_name bind:content_text bind:icon_name
+			{isSaving}
+			onsubmit={handleSave} oncancel={() => isEditing = false}
+		/>
+	{/snippet}
+</AdminPageLayout>
 
 <!-- View Modal -->
 <Modal bind:show={isViewing} title="Detail Konten" maxWidth="600px">
@@ -224,73 +204,10 @@
 </Modal>
 
 <style>
-	.konten-page {
-		min-height: 100vh;
-		padding: 32px 24px;
-		position: relative;
-	}
-	.konten-layout {
-		display: flex;
-		gap: 24px;
-		max-width: 1400px;
-		margin: 0 auto;
-		position: relative;
-		z-index: 10;
-		align-items: flex-start;
-	}
-	.main-content-panel {
-		flex: 1;
-		min-width: 0;
-		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-	}
-	.drawer-panel {
-		width: 580px;
-		flex-shrink: 0;
-		background: var(--surface-white, #fff);
-		border: 4px solid var(--border-color, #1b1c19);
-		box-shadow: 8px 8px 0px 0px var(--shadow-color, #1b1c19);
-		display: flex;
-		flex-direction: column;
-		height: fit-content;
-		position: sticky;
-		top: 32px;
-		animation: slideIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-	}
-	@keyframes slideIn {
-		from {
-			opacity: 0;
-			transform: translateX(40px);
-		}
-		to {
-			opacity: 1;
-			transform: translateX(0);
-		}
-	}
-	.drawer-header {
-		padding: 16px 20px;
-		border-bottom: 3px solid var(--border-color, #1b1c19);
-		background: var(--primary-light, #e8ddff);
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-	}
-	.drawer-title {
-		margin: 0;
-		font-size: 18px;
-		font-weight: 700;
-	}
-	.drawer-body {
-		padding: 20px;
-		max-height: 80vh;
-		overflow-y: auto;
-	}
 	.table-actions {
 		display: flex;
 		gap: 8px;
 		justify-content: flex-end;
-	}
-	:global(.data-table th:last-child) {
-		text-align: right;
 	}
 	.empty-state {
 		padding: 32px;
@@ -308,6 +225,8 @@
 		padding: 16px;
 		background: #faf9f4;
 		border-top: 2px solid #1b1c19;
+		flex-wrap: wrap;
+		gap: 12px;
 	}
 	.page-info {
 		font-weight: 700;
@@ -329,17 +248,4 @@
 	.detail-meta { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; font-size: 13px; color: #555; }
 	.meta-item { display: flex; align-items: center; gap: 4px; }
 	.detail-desc { line-height: 1.6; background: var(--surface); padding: 16px; border-left: 4px solid var(--primary-color); margin-bottom: 24px; white-space: pre-wrap; font-size: 15px; }
-
-	/* Responsive styles */
-	@media (max-width: 1024px) {
-		.konten-layout {
-			flex-direction: column;
-		}
-		.drawer-panel {
-			width: 100%;
-			position: relative;
-			top: 0;
-			margin-top: 24px;
-		}
-	}
 </style>

@@ -1,7 +1,12 @@
 import { fetchActivities } from '$lib/services/activityService.js';
 import { fetchFaqs } from '$lib/services/faqService.js';
+import { browser } from '$app/environment';
 
 export async function load() {
+	if (!browser) {
+		return { activities: [], faqs: [] };
+	}
+
 	try {
 		const [{ data: activities }, { data: faqs }] = await Promise.all([
 			fetchActivities(1, 10, ''),
@@ -13,3 +18,4 @@ export async function load() {
 		return { activities: [], faqs: [] };
 	}
 }
+

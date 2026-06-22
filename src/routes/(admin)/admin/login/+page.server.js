@@ -14,7 +14,7 @@ export const actions = {
 	 * Dibuat sebagai form action agar bekerja tanpa JavaScript (progressive enhancement).
 	 */
 	login: async ({ locals, url }) => {
-		const redirectTo = `${url.origin}/auth/callback`;
+		const redirectTo = `${url.origin}/auth/callback?next=/admin/dashboard`;
 
 		const { data, error } = await locals.supabase.auth.signInWithOAuth({
 			provider: 'google',

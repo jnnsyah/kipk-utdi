@@ -74,9 +74,6 @@
 					<Icon name="arrow_back" size={18} />
 					<span>Kembali ke Beranda</span>
 				</Button>
-				<Button href="/admin/dashboard" variant="secondary" id="btn-error-dash">
-					<span>Panel Admin</span>
-				</Button>
 			</div>
 		</div>
 	</div>

@@ -35,6 +35,7 @@
 		{ value: 'WORKSHOP', label: 'Workshop' },
 		{ value: 'TRAINING', label: 'Training' },
 		{ value: 'SOSIALISASI', label: 'Sosialisasi' },
+		{ value: 'EVALUASI', label: 'Evaluasi' },
 		{ value: 'LAINNYA', label: 'Lainnya' }
 	];
 
@@ -51,7 +52,6 @@
 	let tag = $state('SEMINAR');
 	let date = $state('');
 	let location = $state('');
-	let academic_year = $state(new Date().getFullYear());
 	let description = $state('');
 	let files = $state([]);
 	let existingPhotos = $state([]);
@@ -88,7 +88,6 @@
 		tag = 'SEMINAR';
 		date = '';
 		location = '';
-		academic_year = new Date().getFullYear();
 		description = '';
 		files = [];
 		existingPhotos = [];
@@ -110,7 +109,6 @@
 		tag = activity.tag;
 		date = activity.date;
 		location = activity.location;
-		academic_year = activity.academic_year;
 		description = activity.description || '';
 		existingPhotos = activity.photos || [];
 		isEditing = true;
@@ -131,6 +129,7 @@
 		try {
 			showLoading('Menyimpan data kegiatan...');
 			isUploading = true;
+			const academic_year = date ? new Date(date).getFullYear() : new Date().getFullYear();
 			const activityData = { title, tag, date, location, academic_year, description };
 			
 			if (isEditing) {
@@ -286,14 +285,14 @@
 				<div class="drawer-body">
 					{#if isAdding}
 						<ActivityForm 
-							bind:title bind:tag bind:date bind:location bind:academic_year bind:description bind:files
+							bind:title bind:tag bind:date bind:location bind:description bind:files
 							{isUploading} {uploadProgress}
 							onsubmit={handleSave} oncancel={() => isAdding = false}
 						/>
 					{:else if isEditing}
 						<ActivityForm 
 							isEditing={true}
-							bind:title bind:tag bind:date bind:location bind:academic_year bind:description bind:files bind:existingPhotos bind:photosToDelete
+							bind:title bind:tag bind:date bind:location bind:description bind:files bind:existingPhotos bind:photosToDelete
 							{isUploading} {uploadProgress}
 							onsubmit={handleSave} oncancel={() => isEditing = false}
 						/>

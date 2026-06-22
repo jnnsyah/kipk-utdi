@@ -10,7 +10,6 @@
 		tag = $bindable('SEMINAR'),
 		date = $bindable(''),
 		location = $bindable(''),
-		academic_year = $bindable(new Date().getFullYear()),
 		description = $bindable(''),
 		files = $bindable([]),
 		existingPhotos = $bindable([]),
@@ -26,6 +25,7 @@
 		{ value: 'WORKSHOP', label: 'WORKSHOP' },
 		{ value: 'TRAINING', label: 'TRAINING' },
 		{ value: 'SOSIALISASI', label: 'SOSIALISASI' },
+		{ value: 'EVALUASI', label: 'EVALUASI' },
 		{ value: 'LAINNYA', label: 'LAINNYA' }
 	];
 
@@ -84,14 +84,9 @@
 			<CustomDatePicker bind:value={date} id="date" required={true} />
 		</div>
 		<div class="form-group">
-			<label for="academic_year">Tahun Akademik <span class="required">*</span></label>
-			<input type="number" id="academic_year" bind:value={academic_year} required min="2000" max="2100" />
+			<label for="location">Lokasi <span class="required">*</span></label>
+			<input type="text" id="location" bind:value={location} required placeholder="Contoh: Ruang Seminar Kampus" />
 		</div>
-	</div>
-
-	<div class="form-group">
-		<label for="location">Lokasi <span class="required">*</span></label>
-		<input type="text" id="location" bind:value={location} required placeholder="Contoh: Ruang Seminar Kampus" />
 	</div>
 
 	<div class="form-group">

@@ -33,6 +33,11 @@ export async function handle({ event, resolve }) {
 		throw redirect(303, '/admin/dashboard');
 	}
 
+	// Jika mengakses root /admin dan sudah login → redirect ke dashboard
+	if ((path === '/admin' || path === '/admin/') && session) {
+		throw redirect(303, '/admin/dashboard');
+	}
+
 	return resolve(event, {
 		filterSerializedResponseHeaders(name) {
 			// Izinkan header content-range agar Supabase storage bisa digunakan

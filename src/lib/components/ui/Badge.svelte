@@ -6,6 +6,7 @@
 		'WORKSHOP': 'badge-workshop',
 		'TRAINING': 'badge-training',
 		'SOSIALISASI': 'badge-sosialisasi',
+		'EVALUASI': 'badge-evaluasi',
 		'LAINNYA': ''
 	};
 	

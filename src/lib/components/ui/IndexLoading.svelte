@@ -1,5 +1,5 @@
 <script>
-	// Component for loading state on index page
+	import { fade } from 'svelte/transition';
 </script>
 
 <style>
@@ -81,7 +81,7 @@
 	}
 </style>
 
-<div class="loading-container grid-bg-header">
+<div transition:fade={{ duration: 800 }} class="loading-container grid-bg-header">
 	<div class="flex items-center font-display text-[40px] md:text-[80px] font-black text-on-background transform -rotate-2">
 		<span class="mr-3 md:mr-6">Ber</span>
 		<div class="bg-primary text-on-primary border-4 md:border-8 border-on-background shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] md:shadow-[16px_16px_0px_0px_rgba(0,0,0,1)] px-4 md:px-8 py-2 md:py-4">

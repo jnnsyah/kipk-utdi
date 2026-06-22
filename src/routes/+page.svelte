@@ -323,22 +323,22 @@
 			<header id="home" class="relative overflow-hidden pt-36 pb-24 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto transition-all duration-500 z-10">
 				<div class="grid grid-cols-1 gap-12 items-center">
 					<div class="z-10 text-center mx-auto flex flex-col items-center rounded-full hero-radial p-8">
-						<h1 class="font-display mb-12 leading-tight">
+						<h1 class="font-display mb-8 md:mb-12 leading-tight">
 							<span 
-								class="text-[24px] md:text-[32px] block mb-6 font-label-bold bg-secondary-container text-on-secondary-container px-6 py-2 border-4 border-on-background shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] inline-block rotate-2 transform hover:rotate-0 hover:scale-105 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all cursor-default select-none {activeHeroItem === 'komunitas' ? 'rotate-0 scale-105 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]' : ''}"
+								class="text-lg md:text-[32px] block mb-4 md:mb-6 font-label-bold bg-secondary-container text-on-secondary-container px-4 py-1.5 md:px-6 md:py-2 border-2 md:border-4 border-on-background shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] md:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] inline-block rotate-2 transform hover:rotate-0 hover:scale-105 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all cursor-default select-none {activeHeroItem === 'komunitas' ? 'rotate-0 scale-105 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]' : ''}"
 								onclick={(e) => { e.stopPropagation(); activeHeroItem = activeHeroItem === 'komunitas' ? null : 'komunitas'; }}
 							>Komunitas</span><br>
 							<span 
-								class="bg-[#3b82f6] text-white px-8 py-3 border-4 border-on-background shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] inline-block -rotate-2 transform -skew-x-6 my-4 text-[48px] md:text-[72px] leading-none font-label-bold font-bold hover:rotate-0 hover:skew-x-0 hover:scale-110 hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] hover:bg-primary transition-all duration-300 cursor-default select-none {activeHeroItem === 'kipk' ? 'rotate-0 skew-x-0 scale-110 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] bg-primary' : ''}"
+								class="bg-[#3b82f6] text-white px-4 py-2 md:px-8 md:py-3 border-2 md:border-4 border-on-background shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] inline-block -rotate-2 transform -skew-x-6 my-2 md:my-4 text-3xl md:text-[72px] leading-none font-label-bold font-bold hover:rotate-0 hover:skew-x-0 hover:scale-105 md:hover:scale-110 hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] md:hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] hover:bg-primary transition-all duration-300 cursor-default select-none {activeHeroItem === 'kipk' ? 'rotate-0 skew-x-0 scale-105 md:scale-110 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] md:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] bg-primary' : ''}"
 								onclick={(e) => { e.stopPropagation(); activeHeroItem = activeHeroItem === 'kipk' ? null : 'kipk'; }}
 							>KIP-Kuliah</span><br>
-							<span class="text-primary text-[24px] md:text-[40px] block mt-6 font-label-bold hover:tracking-wide transition-all duration-300 cursor-default">Universitas Teknologi Digital Indonesia</span>
+							<span class="text-primary text-lg md:text-[40px] block mt-4 md:mt-6 font-label-bold hover:tracking-wide transition-all duration-300 cursor-default">Universitas Teknologi Digital Indonesia</span>
 						</h1>
-						<p class="font-body-lg text-body-lg mb-10 max-w-xl text-on-surface-variant hover:text-on-background transition-colors cursor-default">
+						<p class="font-body-lg text-sm md:text-body-lg mb-8 md:mb-10 max-w-xl text-on-surface-variant hover:text-on-background transition-colors cursor-default">
 							Wadah inspirasi, kolaborasi, dan pemberdayaan bagi mahasiswa penerima KIP Kuliah untuk berkarya nyata.
 						</p>
 						<div class="flex flex-wrap gap-4 justify-center">
-							<a href="https://utdi.id/kip-kuliah" target="_blank" rel="noopener noreferrer" class="bg-primary text-on-primary px-8 py-4 border-4 border-on-background neo-shadow font-headline-md neo-hover neo-active transition-all block text-center">
+							<a href="https://utdi.id/kip-kuliah" target="_blank" rel="noopener noreferrer" class="bg-primary text-on-primary px-6 py-3 md:px-8 md:py-4 border-2 md:border-4 border-on-background neo-shadow font-headline-md neo-hover neo-active transition-all block text-center text-sm md:text-base">
 								Informasi Pendaftaran
 							</a>
 						</div>
@@ -358,38 +358,38 @@
 				</div>
 				<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
 					<div 
-						class="bg-surface p-8 border-4 border-on-background neo-shadow neo-hover transition-all group hover:bg-primary-fixed select-none cursor-default {activeAboutCard === 'visi' ? 'bg-primary-fixed -translate-x-0.5 -translate-y-0.5 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]' : ''}"
+						class="bg-surface p-6 md:p-8 border-2 md:border-4 border-on-background neo-shadow neo-hover transition-all group hover:bg-primary-fixed select-none cursor-default {activeAboutCard === 'visi' ? 'bg-primary-fixed -translate-x-0.5 -translate-y-0.5 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] md:shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]' : ''}"
 						onclick={(e) => { e.stopPropagation(); activeAboutCard = activeAboutCard === 'visi' ? null : 'visi'; }}
 					>
-						<div class="w-16 h-16 bg-primary-container border-2 border-on-background flex items-center justify-center mb-6 transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110 {activeAboutCard === 'visi' ? 'rotate-12 scale-110' : ''}">
-							<span class="material-symbols-outlined text-[40px]" style="font-variation-settings: 'FILL' 1">lightbulb</span>
+						<div class="w-12 h-12 md:w-16 md:h-16 bg-primary-container border-2 border-on-background flex items-center justify-center mb-4 md:mb-6 transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110 {activeAboutCard === 'visi' ? 'rotate-12 scale-110' : ''}">
+							<span class="material-symbols-outlined text-2xl md:text-[40px]" style="font-variation-settings: 'FILL' 1">lightbulb</span>
 						</div>
-						<h3 class="font-headline-lg text-2xl font-bold mb-4 group-hover:text-primary transition-colors {activeAboutCard === 'visi' ? 'text-primary' : ''}">Visi</h3>
-						<p class="font-body-md text-body-md text-on-surface-variant group-hover:text-on-background transition-colors {activeAboutCard === 'visi' ? 'text-on-background' : ''}">
+						<h3 class="font-headline-lg text-xl md:text-2xl font-bold mb-3 md:mb-4 group-hover:text-primary transition-colors {activeAboutCard === 'visi' ? 'text-primary' : ''}">Visi</h3>
+						<p class="font-body-md text-sm md:text-base text-on-surface-variant group-hover:text-on-background transition-colors {activeAboutCard === 'visi' ? 'text-on-background' : ''}">
 							Menjadi komunitas mahasiswa yang unggul dalam akademik dan kolaboratif.
 						</p>
 					</div>
 					<div 
-						class="bg-surface p-8 border-4 border-on-background neo-shadow neo-hover transition-all group hover:bg-secondary-fixed select-none cursor-default {activeAboutCard === 'misi' ? 'bg-secondary-fixed -translate-x-0.5 -translate-y-0.5 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]' : ''}"
+						class="bg-surface p-6 md:p-8 border-2 md:border-4 border-on-background neo-shadow neo-hover transition-all group hover:bg-secondary-fixed select-none cursor-default {activeAboutCard === 'misi' ? 'bg-secondary-fixed -translate-x-0.5 -translate-y-0.5 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] md:shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]' : ''}"
 						onclick={(e) => { e.stopPropagation(); activeAboutCard = activeAboutCard === 'misi' ? null : 'misi'; }}
 					>
-						<div class="w-16 h-16 bg-secondary-container border-2 border-on-background flex items-center justify-center mb-6 transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-110 {activeAboutCard === 'misi' ? '-rotate-12 scale-110' : ''}">
-							<span class="material-symbols-outlined text-[40px]" style="font-variation-settings: 'FILL' 1">rocket_launch</span>
+						<div class="w-12 h-12 md:w-16 md:h-16 bg-secondary-container border-2 border-on-background flex items-center justify-center mb-4 md:mb-6 transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-110 {activeAboutCard === 'misi' ? '-rotate-12 scale-110' : ''}">
+							<span class="material-symbols-outlined text-2xl md:text-[40px]" style="font-variation-settings: 'FILL' 1">rocket_launch</span>
 						</div>
-						<h3 class="font-headline-lg text-2xl font-bold mb-4 group-hover:text-secondary transition-colors {activeAboutCard === 'misi' ? 'text-secondary' : ''}">Misi</h3>
-						<p class="font-body-md text-body-md text-on-surface-variant group-hover:text-on-background transition-colors {activeAboutCard === 'misi' ? 'text-on-background' : ''}">
+						<h3 class="font-headline-lg text-xl md:text-2xl font-bold mb-3 md:mb-4 group-hover:text-secondary transition-colors {activeAboutCard === 'misi' ? 'text-secondary' : ''}">Misi</h3>
+						<p class="font-body-md text-sm md:text-base text-on-surface-variant group-hover:text-on-background transition-colors {activeAboutCard === 'misi' ? 'text-on-background' : ''}">
 							Mengembangkan potensi kepemimpinan dan soft skills mahasiswa melalui berbagai program pelatihan.
 						</p>
 					</div>
 					<div 
-						class="bg-surface p-8 border-4 border-on-background neo-shadow neo-hover transition-all group hover:bg-tertiary-fixed select-none cursor-default {activeAboutCard === 'tujuan' ? 'bg-tertiary-fixed -translate-x-0.5 -translate-y-0.5 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]' : ''}"
+						class="bg-surface p-6 md:p-8 border-2 md:border-4 border-on-background neo-shadow neo-hover transition-all group hover:bg-tertiary-fixed select-none cursor-default {activeAboutCard === 'tujuan' ? 'bg-tertiary-fixed -translate-x-0.5 -translate-y-0.5 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] md:shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]' : ''}"
 						onclick={(e) => { e.stopPropagation(); activeAboutCard = activeAboutCard === 'tujuan' ? null : 'tujuan'; }}
 					>
-						<div class="w-16 h-16 bg-surface border-2 border-on-background flex items-center justify-center mb-6 transition-all duration-500 group-hover:rotate-180 group-hover:bg-primary-container {activeAboutCard === 'tujuan' ? 'rotate-180 bg-primary-container' : ''}">
-							<span class="material-symbols-outlined text-[40px]" style="font-variation-settings: 'FILL' 1">ads_click</span>
+						<div class="w-12 h-12 md:w-16 md:h-16 bg-surface border-2 border-on-background flex items-center justify-center mb-4 md:mb-6 transition-all duration-500 group-hover:rotate-180 group-hover:bg-primary-container {activeAboutCard === 'tujuan' ? 'rotate-180 bg-primary-container' : ''}">
+							<span class="material-symbols-outlined text-2xl md:text-[40px]" style="font-variation-settings: 'FILL' 1">ads_click</span>
 						</div>
-						<h3 class="font-headline-lg text-2xl font-bold mb-4">Tujuan</h3>
-						<p class="font-body-md text-body-md text-on-surface-variant group-hover:text-on-background transition-colors {activeAboutCard === 'tujuan' ? 'text-on-background' : ''}">
+						<h3 class="font-headline-lg text-xl md:text-2xl font-bold mb-3 md:mb-4">Tujuan</h3>
+						<p class="font-body-md text-sm md:text-base text-on-surface-variant group-hover:text-on-background transition-colors {activeAboutCard === 'tujuan' ? 'text-on-background' : ''}">
 							Membangun jejaring yang kuat antar penerima KIP-K serta menciptakan ekosistem belajar yang suportif dan inklusif.
 						</p>
 					</div>
@@ -518,15 +518,6 @@
 						</p>
 					</div>
 					<div class="grid grid-cols-2 gap-12">
-						<div>
-							<h4 class="font-label-bold text-label-bold uppercase tracking-widest mb-6">Navigasi</h4>
-							<ul class="space-y-4">
-								<li><a class="font-body-md hover:text-primary hover:translate-x-2 inline-block transition-all" href="#home">Beranda</a></li>
-								<li><a class="font-body-md hover:text-primary hover:translate-x-2 inline-block transition-all" href="#tentang">Tentang</a></li>
-								<li><a class="font-body-md hover:text-primary hover:translate-x-2 inline-block transition-all" href="#kegiatan">Kegiatan</a></li>
-								<li><a class="font-body-md hover:text-primary hover:translate-x-2 inline-block transition-all" href="#faq">FAQ</a></li>
-							</ul>
-						</div>
 					</div>
 				</div>
 				<div class="pt-12 border-t-2 border-on-background/10 flex flex-col md:flex-row justify-between items-center gap-4">

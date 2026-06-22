@@ -5,6 +5,38 @@
 	let { data } = $props();
 	let { activities = [], faqs = [] } = data;
 
+	let selectedYear = $state('Terbaru');
+	let availableYears = $derived([...new Set(activities.map(act => new Date(act.date).getFullYear()))].sort((a, b) => b - a));
+	let filteredActivities = $derived(selectedYear === 'Terbaru' ? activities : activities.filter(act => new Date(act.date).getFullYear() === selectedYear));
+
+	function handleIncrementYear() {
+		if (availableYears.length === 0) return;
+		if (selectedYear === 'Terbaru') {
+			selectedYear = availableYears[availableYears.length - 1];
+		} else {
+			const idx = availableYears.indexOf(selectedYear);
+			if (idx > 0) {
+				selectedYear = availableYears[idx - 1];
+			} else {
+				selectedYear = 'Terbaru';
+			}
+		}
+	}
+
+	function handleDecrementYear() {
+		if (availableYears.length === 0) return;
+		if (selectedYear === 'Terbaru') {
+			selectedYear = availableYears[0];
+		} else {
+			const idx = availableYears.indexOf(selectedYear);
+			if (idx < availableYears.length - 1) {
+				selectedYear = availableYears[idx + 1];
+			} else {
+				selectedYear = 'Terbaru';
+			}
+		}
+	}
+
 	let isLoading = $state(true);
 
 
@@ -57,6 +89,44 @@
 		}, 500);
 	}
 
+	// Swipe to close bottom sheet logic
+	let startY = 0;
+	let currentY = 0;
+	let isDragging = false;
+	let drawerPanel;
+
+	function handleTouchStart(e) {
+		if (window.innerWidth >= 768) return;
+		const touch = e.touches[0];
+		startY = touch.clientY;
+		isDragging = true;
+	}
+
+	function handleTouchMove(e) {
+		if (!isDragging) return;
+		const touch = e.touches[0];
+		currentY = touch.clientY - startY;
+		if (currentY < 0) currentY = 0; // Don't drag up
+		
+		if (drawerPanel) {
+			drawerPanel.style.transform = `translateY(${currentY}px)`;
+			drawerPanel.style.transition = 'none';
+		}
+	}
+
+	function handleTouchEnd() {
+		if (!isDragging) return;
+		isDragging = false;
+		if (drawerPanel) {
+			drawerPanel.style.transition = '';
+			drawerPanel.style.transform = '';
+			if (currentY > 150) {
+				closeDetailDrawer();
+			}
+		}
+		currentY = 0;
+	}
+
 	function slidePhoto(dir, manual = true) {
 		if (!selectedActivity || !selectedActivity.photos || selectedActivity.photos.length === 0) return;
 		const total = selectedActivity.photos.length;
@@ -75,6 +145,10 @@
 		activeFaq = activeFaq === id ? null : id;
 	}
 
+	let activeHeroItem = $state(null);
+	let activeAboutCard = $state(null);
+	let activeFaqHover = $state(null);
+
 	onMount(() => {
 		// Simulate data fetching delay for the custom loading page
 		setTimeout(() => {
@@ -90,6 +164,13 @@
 		};
 		window.addEventListener('scroll', handleScroll);
 
+		const handleDocumentClick = () => {
+			activeHeroItem = null;
+			activeAboutCard = null;
+			activeFaqHover = null;
+		};
+		window.addEventListener('click', handleDocumentClick);
+
 		startActivitiesAutoScroll();
 
 		// Observer for footer
@@ -103,6 +184,7 @@
 
 		return () => {
 			window.removeEventListener('scroll', handleScroll);
+			window.removeEventListener('click', handleDocumentClick);
 			stopActivitiesAutoScroll();
 			stopDrawerAutoSlide();
 			if (footerElement) footerObserver.disconnect();
@@ -210,7 +292,7 @@
 		<div class="relative w-full">
 			<div class="absolute inset-0 z-0 grid-bg-header"></div>
 			
-			<nav class="fixed left-1/2 w-[90%] md:w-max z-50 bg-surface border-4 border-on-background shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] {mobileMenuOpen ? 'rounded-[32px]' : 'rounded-full'} px-8 transition-all duration-500 {isFooterVisible ? '-top-32' : 'top-6'} {isDrawerOpen ? 'max-md:-translate-x-1/2 md:-translate-x-[calc(50%+252px)]' : '-translate-x-1/2'}">
+			<nav class="fixed left-1/2 w-[90%] md:w-max z-50 bg-surface border-4 border-on-background shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] rounded-[24px] md:rounded-full px-8 transition-all duration-500 {isFooterVisible ? '-top-32' : 'top-6'} {isDrawerOpen ? 'max-md:-translate-x-1/2 md:-translate-x-[calc(50%+252px)]' : '-translate-x-1/2'}">
 				<div class="flex justify-between items-center gap-12 py-3">
 					<div class="flex items-center gap-3 pr-4">
 						<img src={favicon} alt="Logo KIP-K UTDI" class="h-10 w-auto" />
@@ -226,22 +308,28 @@
 						<span class="material-symbols-outlined">{mobileMenuOpen ? 'close' : 'menu'}</span>
 					</button>
 				</div>
-				{#if mobileMenuOpen}
-				<div class="md:hidden flex flex-col gap-2 mt-2 pb-6 px-2">
-					<a class="font-label-bold text-primary px-4 py-3 border-2 border-transparent hover:border-on-background hover:bg-primary-fixed rounded-xl transition-all" href="#home" onclick={() => mobileMenuOpen = false}>Beranda</a>
-					<a class="font-label-bold text-on-background px-4 py-3 border-2 border-transparent hover:border-on-background hover:bg-secondary-container rounded-xl transition-all" href="#tentang" onclick={() => mobileMenuOpen = false}>Tentang</a>
-					<a class="font-label-bold text-on-background px-4 py-3 border-2 border-transparent hover:border-on-background hover:bg-tertiary-fixed rounded-xl transition-all" href="#kegiatan" onclick={() => mobileMenuOpen = false}>Kegiatan</a>
-					<a class="font-label-bold text-on-background px-4 py-3 border-2 border-transparent hover:border-on-background hover:bg-primary-fixed rounded-xl transition-all" href="#faq" onclick={() => mobileMenuOpen = false}>FAQ</a>
+				<div class="md:hidden overflow-hidden transition-all duration-500 ease-in-out" style="max-height: {mobileMenuOpen ? '260px' : '0px'}; opacity: {mobileMenuOpen ? '1' : '0'}; transform: translateY({mobileMenuOpen ? '0px' : '-10px'});">
+					<div class="flex flex-col gap-2 mt-2 pb-6 px-2">
+						<a class="font-label-bold text-primary px-4 py-3 border-2 border-transparent hover:border-on-background hover:bg-primary-fixed hover:-translate-y-1 rounded-xl transition-all" href="#home" onclick={() => mobileMenuOpen = false}>Beranda</a>
+						<a class="font-label-bold text-on-background px-4 py-3 border-2 border-transparent hover:border-on-background hover:bg-secondary-container hover:-translate-y-1 rounded-xl transition-all" href="#tentang" onclick={() => mobileMenuOpen = false}>Tentang</a>
+						<a class="font-label-bold text-on-background px-4 py-3 border-2 border-transparent hover:border-on-background hover:bg-tertiary-fixed hover:-translate-y-1 rounded-xl transition-all" href="#kegiatan" onclick={() => mobileMenuOpen = false}>Kegiatan</a>
+						<a class="font-label-bold text-on-background px-4 py-3 border-2 border-transparent hover:border-on-background hover:bg-primary-fixed hover:-translate-y-1 rounded-xl transition-all" href="#faq" onclick={() => mobileMenuOpen = false}>FAQ</a>
+					</div>
 				</div>
-				{/if}
 			</nav>
 
 			<header id="home" class="relative overflow-hidden pt-36 pb-24 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto transition-all duration-500 z-10">
 				<div class="grid grid-cols-1 gap-12 items-center">
 					<div class="z-10 text-center mx-auto flex flex-col items-center rounded-full hero-radial p-8">
 						<h1 class="font-display mb-12 leading-tight">
-							<span class="text-[24px] md:text-[32px] block mb-6 font-label-bold bg-secondary-container text-on-secondary-container px-6 py-2 border-4 border-on-background shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] inline-block rotate-2 transform hover:rotate-0 hover:scale-105 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all cursor-default">Komunitas</span><br>
-							<span class="bg-[#3b82f6] text-white px-8 py-3 border-4 border-on-background shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] inline-block -rotate-2 transform -skew-x-6 my-4 text-[48px] md:text-[72px] leading-none font-label-bold font-bold hover:rotate-0 hover:skew-x-0 hover:scale-110 hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] hover:bg-primary transition-all duration-300 cursor-default">KIP-Kuliah</span><br>
+							<span 
+								class="text-[24px] md:text-[32px] block mb-6 font-label-bold bg-secondary-container text-on-secondary-container px-6 py-2 border-4 border-on-background shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] inline-block rotate-2 transform hover:rotate-0 hover:scale-105 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all cursor-default select-none {activeHeroItem === 'komunitas' ? 'rotate-0 scale-105 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]' : ''}"
+								onclick={(e) => { e.stopPropagation(); activeHeroItem = activeHeroItem === 'komunitas' ? null : 'komunitas'; }}
+							>Komunitas</span><br>
+							<span 
+								class="bg-[#3b82f6] text-white px-8 py-3 border-4 border-on-background shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] inline-block -rotate-2 transform -skew-x-6 my-4 text-[48px] md:text-[72px] leading-none font-label-bold font-bold hover:rotate-0 hover:skew-x-0 hover:scale-110 hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] hover:bg-primary transition-all duration-300 cursor-default select-none {activeHeroItem === 'kipk' ? 'rotate-0 skew-x-0 scale-110 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] bg-primary' : ''}"
+								onclick={(e) => { e.stopPropagation(); activeHeroItem = activeHeroItem === 'kipk' ? null : 'kipk'; }}
+							>KIP-Kuliah</span><br>
 							<span class="text-primary text-[24px] md:text-[40px] block mt-6 font-label-bold hover:tracking-wide transition-all duration-300 cursor-default">Universitas Teknologi Digital Indonesia</span>
 						</h1>
 						<p class="font-body-lg text-body-lg mb-10 max-w-xl text-on-surface-variant hover:text-on-background transition-colors cursor-default">
@@ -267,30 +355,39 @@
 					<div class="hidden md:block w-32 h-4 bg-on-background"></div>
 				</div>
 				<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
-					<div class="bg-surface p-8 border-4 border-on-background neo-shadow neo-hover transition-all group hover:bg-primary-fixed">
-						<div class="w-16 h-16 bg-primary-container border-2 border-on-background flex items-center justify-center mb-6 group-hover:rotate-12 group-hover:scale-110 transition-transform duration-300">
+					<div 
+						class="bg-surface p-8 border-4 border-on-background neo-shadow neo-hover transition-all group hover:bg-primary-fixed select-none cursor-default {activeAboutCard === 'visi' ? 'bg-primary-fixed -translate-x-0.5 -translate-y-0.5 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]' : ''}"
+						onclick={(e) => { e.stopPropagation(); activeAboutCard = activeAboutCard === 'visi' ? null : 'visi'; }}
+					>
+						<div class="w-16 h-16 bg-primary-container border-2 border-on-background flex items-center justify-center mb-6 transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110 {activeAboutCard === 'visi' ? 'rotate-12 scale-110' : ''}">
 							<span class="material-symbols-outlined text-[40px]" style="font-variation-settings: 'FILL' 1">lightbulb</span>
 						</div>
-						<h3 class="font-headline-lg text-2xl font-bold mb-4 group-hover:text-primary transition-colors">Visi</h3>
-						<p class="font-body-md text-body-md text-on-surface-variant group-hover:text-on-background transition-colors">
+						<h3 class="font-headline-lg text-2xl font-bold mb-4 group-hover:text-primary transition-colors {activeAboutCard === 'visi' ? 'text-primary' : ''}">Visi</h3>
+						<p class="font-body-md text-body-md text-on-surface-variant group-hover:text-on-background transition-colors {activeAboutCard === 'visi' ? 'text-on-background' : ''}">
 							Menjadi komunitas mahasiswa yang unggul dalam akademik dan kolaboratif.
 						</p>
 					</div>
-					<div class="bg-surface p-8 border-4 border-on-background neo-shadow neo-hover transition-all group hover:bg-secondary-fixed">
-						<div class="w-16 h-16 bg-secondary-container border-2 border-on-background flex items-center justify-center mb-6 group-hover:-rotate-12 group-hover:scale-110 transition-transform duration-300">
+					<div 
+						class="bg-surface p-8 border-4 border-on-background neo-shadow neo-hover transition-all group hover:bg-secondary-fixed select-none cursor-default {activeAboutCard === 'misi' ? 'bg-secondary-fixed -translate-x-0.5 -translate-y-0.5 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]' : ''}"
+						onclick={(e) => { e.stopPropagation(); activeAboutCard = activeAboutCard === 'misi' ? null : 'misi'; }}
+					>
+						<div class="w-16 h-16 bg-secondary-container border-2 border-on-background flex items-center justify-center mb-6 transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-110 {activeAboutCard === 'misi' ? '-rotate-12 scale-110' : ''}">
 							<span class="material-symbols-outlined text-[40px]" style="font-variation-settings: 'FILL' 1">rocket_launch</span>
 						</div>
-						<h3 class="font-headline-lg text-2xl font-bold mb-4 group-hover:text-secondary transition-colors">Misi</h3>
-						<p class="font-body-md text-body-md text-on-surface-variant group-hover:text-on-background transition-colors">
+						<h3 class="font-headline-lg text-2xl font-bold mb-4 group-hover:text-secondary transition-colors {activeAboutCard === 'misi' ? 'text-secondary' : ''}">Misi</h3>
+						<p class="font-body-md text-body-md text-on-surface-variant group-hover:text-on-background transition-colors {activeAboutCard === 'misi' ? 'text-on-background' : ''}">
 							Mengembangkan potensi kepemimpinan dan soft skills mahasiswa melalui berbagai program pelatihan.
 						</p>
 					</div>
-					<div class="bg-surface p-8 border-4 border-on-background neo-shadow neo-hover transition-all group hover:bg-tertiary-fixed">
-						<div class="w-16 h-16 bg-surface border-2 border-on-background flex items-center justify-center mb-6 group-hover:rotate-180 group-hover:bg-primary-container transition-all duration-500">
+					<div 
+						class="bg-surface p-8 border-4 border-on-background neo-shadow neo-hover transition-all group hover:bg-tertiary-fixed select-none cursor-default {activeAboutCard === 'tujuan' ? 'bg-tertiary-fixed -translate-x-0.5 -translate-y-0.5 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]' : ''}"
+						onclick={(e) => { e.stopPropagation(); activeAboutCard = activeAboutCard === 'tujuan' ? null : 'tujuan'; }}
+					>
+						<div class="w-16 h-16 bg-surface border-2 border-on-background flex items-center justify-center mb-6 transition-all duration-500 group-hover:rotate-180 group-hover:bg-primary-container {activeAboutCard === 'tujuan' ? 'rotate-180 bg-primary-container' : ''}">
 							<span class="material-symbols-outlined text-[40px]" style="font-variation-settings: 'FILL' 1">ads_click</span>
 						</div>
 						<h3 class="font-headline-lg text-2xl font-bold mb-4">Tujuan</h3>
-						<p class="font-body-md text-body-md text-on-surface-variant group-hover:text-on-background transition-colors">
+						<p class="font-body-md text-body-md text-on-surface-variant group-hover:text-on-background transition-colors {activeAboutCard === 'tujuan' ? 'text-on-background' : ''}">
 							Membangun jejaring yang kuat antar penerima KIP-K serta menciptakan ekosistem belajar yang suportif dan inklusif.
 						</p>
 					</div>
@@ -303,13 +400,35 @@
 				<h2 class="font-display text-display text-4xl font-bold">Kegiatan Kami</h2>
 				<div class="flex items-center gap-4 bg-surface p-2 border-4 border-on-background neo-shadow-sm">
 					<span class="font-label-bold px-4">Tahun:</span>
-					<button class="bg-primary text-on-primary px-6 py-2 border-2 border-on-background font-label-bold">Terbaru</button>
+					<div class="flex items-stretch border-2 border-on-background">
+						<!-- Year Display -->
+						<div class="bg-primary text-on-primary px-6 py-2 border-r-2 border-on-background font-label-bold select-none min-w-[100px] text-center flex items-center justify-center cursor-default">
+							{selectedYear}
+						</div>
+						<!-- Stacked Buttons -->
+						<div class="flex flex-col">
+							<button 
+								onclick={handleIncrementYear} 
+								class="bg-surface hover:bg-surface-container-high active:bg-primary-fixed border-b-2 border-on-background px-3 py-0.5 text-xs font-bold flex items-center justify-center cursor-pointer select-none"
+								title="Tambah Tahun"
+							>
+								+
+							</button>
+							<button 
+								onclick={handleDecrementYear} 
+								class="bg-surface hover:bg-surface-container-high active:bg-primary-fixed px-3 py-0.5 text-xs font-bold flex items-center justify-center cursor-pointer select-none"
+								title="Kurang Tahun"
+							>
+								-
+							</button>
+						</div>
+					</div>
 				</div>
 			</div>
 			
-			{#if activities.length > 0}
+			{#if filteredActivities.length > 0}
 			<div class="flex overflow-x-auto gap-gutter pb-12 custom-scrollbar snap-x scroll-smooth" bind:this={activitiesContainer} onmouseenter={stopActivitiesAutoScroll} onmouseleave={startActivitiesAutoScroll} ontouchstart={stopActivitiesAutoScroll} ontouchend={startActivitiesAutoScroll}>
-				{#each activities as activity}
+				{#each filteredActivities as activity}
 				<div class="min-w-[320px] md:min-w-[450px] bg-surface border-4 border-on-background neo-shadow snap-start flex flex-col group hover:bg-surface-container-low transition-colors duration-300">
 					<div class="h-64 overflow-hidden border-b-4 border-on-background relative">
 						{#if activity.photos && activity.photos.length > 0}
@@ -344,7 +463,7 @@
 			</div>
 			{:else}
 			<div class="bg-surface-variant p-8 text-center border-4 border-on-background neo-shadow">
-				<p class="font-body-lg">Belum ada kegiatan yang dipublikasikan.</p>
+				<p class="font-body-lg">Belum ada kegiatan yang dipublikasikan untuk tahun ini.</p>
 			</div>
 			{/if}
 		</section>
@@ -356,9 +475,12 @@
 				<div class="space-y-8">
 					{#each faqs as faq, index}
 					<div class="faq-item group" class:accordion-open={activeFaq === faq.id}>
-						<button class="relative z-10 w-full flex justify-between items-center p-6 text-left focus:outline-none bg-surface hover:bg-primary-fixed border-4 border-on-background neo-shadow-sm transition-all neo-hover {index % 2 === 0 ? 'rotate-1 hover:rotate-0' : '-rotate-1 hover:rotate-0'} {activeFaq === faq.id ? 'neo-shadow bg-primary-fixed' : ''}" onclick={() => toggleFaq(faq.id)}>
-							<span class="font-headline-md text-xl font-bold group-hover:translate-x-2 transition-transform">{faq.question}</span>
-							<span class="material-symbols-outlined arrow-icon transition-transform duration-300 group-hover:scale-125">keyboard_arrow_down</span>
+						<button 
+							class="relative z-10 w-full flex justify-between items-center p-6 text-left focus:outline-none bg-surface hover:bg-primary-fixed border-4 border-on-background neo-shadow-sm transition-all neo-hover {index % 2 === 0 ? 'rotate-1 hover:rotate-0' : '-rotate-1 hover:rotate-0'} {activeFaq === faq.id ? 'neo-shadow bg-primary-fixed' : ''} {activeFaqHover === faq.id ? 'bg-primary-fixed -translate-x-0.5 -translate-y-0.5 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] rotate-0' : ''}" 
+							onclick={(e) => { e.stopPropagation(); toggleFaq(faq.id); activeFaqHover = activeFaqHover === faq.id ? null : faq.id; }}
+						>
+							<span class="font-headline-md text-xl font-bold group-hover:translate-x-2 transition-transform {activeFaqHover === faq.id ? 'translate-x-2' : ''}">{faq.question}</span>
+							<span class="material-symbols-outlined arrow-icon transition-transform duration-300 group-hover:scale-125 {activeFaqHover === faq.id ? 'scale-125' : ''}">keyboard_arrow_down</span>
 						</button>
 						<div class="accordion-content" style="transform: translateY(16px) rotate(0deg) !important;">
 							<div class="p-8 border-4 border-on-background shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] font-body-md font-bold rotate-0 
@@ -422,17 +544,29 @@
 	</div>
 
 	<!-- Activity Drawer -->
-	<div id="activity-drawer" class="fixed inset-0 z-[100] flex justify-end md:items-center md:pr-6 {isDrawerOpen ? '' : 'pointer-events-none'}">
+	<div id="activity-drawer" class="fixed inset-0 z-[100] flex justify-end md:items-center md:pr-6 pointer-events-none">
 		<!-- Backdrop -->
-		<div class="absolute inset-0 bg-on-background/40 backdrop-blur-xs transition-opacity duration-500 md:hidden pointer-events-auto {isDrawerOpen ? 'opacity-100' : 'opacity-0'}" onclick={closeDetailDrawer} role="button" tabindex="0" onkeypress={(e) => e.key === 'Enter' && closeDetailDrawer()}></div>
+		<div class="absolute inset-0 bg-on-background/40 backdrop-blur-xs transition-opacity duration-500 md:hidden {isDrawerOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}" onclick={closeDetailDrawer} role="button" tabindex="0" onkeypress={(e) => e.key === 'Enter' && closeDetailDrawer()}></div>
 
 		<!-- Panel -->
-		<div class="pointer-events-auto w-full md:w-[480px] h-[88vh] md:h-[85vh] bg-surface border-4 md:border-2 border-on-background fixed bottom-0 left-0 right-0 md:relative md:bottom-auto md:left-auto md:right-auto rounded-t-[32px] md:rounded-[24px] overflow-hidden shadow-[0px_-12px_0px_0px_rgba(0,0,0,1)] md:shadow-[-8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col z-10 transition-transform duration-500 ease-out {isDrawerOpen ? 'translate-y-0 md:translate-x-0' : 'translate-y-full md:translate-x-[120%]'}">
+		<div bind:this={drawerPanel} class="{isDrawerOpen ? 'pointer-events-auto' : 'pointer-events-none'} w-full md:w-[480px] h-[88vh] md:h-[85vh] bg-surface border-4 md:border-2 border-on-background fixed bottom-0 left-0 right-0 md:relative md:bottom-auto md:left-auto md:right-auto rounded-t-[32px] md:rounded-[24px] overflow-hidden shadow-[0px_-12px_0px_0px_rgba(0,0,0,1)] md:shadow-[-8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col z-10 transition-transform duration-500 ease-out {isDrawerOpen ? 'translate-y-0 md:translate-x-0' : 'translate-y-full md:translate-x-[120%]'}" >
 			
-			<div class="md:hidden w-16 h-2 bg-on-background rounded-full mx-auto mt-4 mb-2 cursor-grab"></div>
+			<div 
+				class="md:hidden pt-4 pb-2 bg-surface-container-low cursor-grab active:cursor-grabbing touch-none"
+				ontouchstart={handleTouchStart}
+				ontouchmove={handleTouchMove}
+				ontouchend={handleTouchEnd}
+			>
+				<div class="w-16 h-2 bg-on-background/30 rounded-full mx-auto"></div>
+			</div>
 
 			{#if selectedActivity}
-			<div class="p-6 border-b-4 md:border-b-2 border-on-background flex justify-between items-center bg-surface-container-low">
+			<div 
+				class="p-6 border-b-4 md:border-b-2 border-on-background flex justify-between items-center bg-surface-container-low"
+				ontouchstart={handleTouchStart}
+				ontouchmove={handleTouchMove}
+				ontouchend={handleTouchEnd}
+			>
 				<div class="flex items-center gap-3">
 					<span class="bg-primary text-on-primary px-4 py-1 border-2 border-on-background font-label-bold text-[12px] uppercase tracking-wider">{selectedActivity.tag || 'KEGIATAN'}</span>
 					<span class="font-label-bold text-on-surface-variant">Tahun: {new Date(selectedActivity.date).getFullYear()}</span>

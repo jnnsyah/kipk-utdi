@@ -1,3 +1,36 @@
+/* Local Fonts & Icons Setup */
+@font-face {
+	font-family: 'Space Grotesk';
+	font-style: normal;
+	font-weight: 300 700;
+	font-display: swap;
+	src: url('/fonts/space-grotesk.woff2') format('woff2');
+}
+
+@font-face {
+	font-family: 'Material Symbols Outlined';
+	font-style: normal;
+	font-weight: 100 700;
+	font-display: swap;
+	src: url('/fonts/material-symbols-outlined.woff2') format('woff2');
+}
+
+.material-symbols-outlined {
+	font-family: 'Material Symbols Outlined';
+	font-weight: normal;
+	font-style: normal;
+	font-size: 24px;
+	line-height: 1;
+	letter-spacing: normal;
+	text-transform: none;
+	display: inline-block;
+	white-space: nowrap;
+	word-wrap: normal;
+	direction: ltr;
+	-webkit-font-feature-settings: 'liga';
+	-webkit-font-smoothing: antialiased;
+}
+
 /* Global Neo-Brutalism Variables & Base */
 :root {
 	--bg-color: #faf9f4;
@@ -51,10 +84,12 @@ body {
 	color: #fff;
 }
 
-.btn-primary:hover {
-	background: var(--primary-hover);
-	transform: translate(-2px, -2px);
-	box-shadow: 6px 6px 0px 0px var(--shadow-color);
+@media (hover: hover) {
+	.btn-primary:hover {
+		background: var(--primary-hover);
+		transform: translate(-2px, -2px);
+		box-shadow: 6px 6px 0px 0px var(--shadow-color);
+	}
 }
 
 .btn-primary:active {
@@ -67,10 +102,12 @@ body {
 	color: var(--text-color);
 }
 
-.btn-secondary:hover {
-	background: #e4e2da;
-	transform: translate(-2px, -2px);
-	box-shadow: 6px 6px 0px 0px var(--shadow-color);
+@media (hover: hover) {
+	.btn-secondary:hover {
+		background: #e4e2da;
+		transform: translate(-2px, -2px);
+		box-shadow: 6px 6px 0px 0px var(--shadow-color);
+	}
 }
 
 .btn-secondary:active {
@@ -83,10 +120,12 @@ body {
 	color: #fff;
 }
 
-.btn-danger:hover {
-	background: var(--danger-hover);
-	transform: translate(-2px, -2px);
-	box-shadow: 6px 6px 0px 0px var(--shadow-color);
+@media (hover: hover) {
+	.btn-danger:hover {
+		background: var(--danger-hover);
+		transform: translate(-2px, -2px);
+		box-shadow: 6px 6px 0px 0px var(--shadow-color);
+	}
 }
 
 .btn-danger:active {
@@ -182,4 +221,33 @@ body {
 		linear-gradient(rgb(219, 218, 213) 1px, transparent 1px);
 	background-size: 40px 40px;
 	pointer-events: none;
+}
+
+/* Neo-Brutalism Global Utilities */
+.neo-shadow {
+	box-shadow: 6px 6px 0px 0px var(--shadow-color, #1b1c19);
+}
+
+.neo-shadow-sm {
+	box-shadow: 4px 4px 0px 0px var(--shadow-color, #1b1c19);
+}
+
+.neo-shadow-lg {
+	box-shadow: 8px 8px 0px 0px var(--shadow-color, #1b1c19);
+}
+
+.neo-hover {
+	transition: transform 0.15s, box-shadow 0.15s;
+}
+
+@media (hover: hover) {
+	.neo-hover:hover {
+		transform: translate(-2px, -2px);
+		box-shadow: 10px 10px 0px 0px var(--shadow-color, #1b1c19);
+	}
+}
+
+.neo-active:active {
+	transform: translate(4px, 4px);
+	box-shadow: 0px 0px 0px 0px var(--shadow-color, #1b1c19);
 }

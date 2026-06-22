@@ -10,7 +10,7 @@
 		children
 	} = $props();
 
-	const baseClass = variant === 'icon' ? 'btn-icon' : `btn-${variant}`;
+	let baseClass = $derived(variant === 'icon' ? 'btn-icon' : `btn-${variant}`);
 </script>
 
 {#if href}

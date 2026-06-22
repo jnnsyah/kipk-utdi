@@ -10,7 +10,7 @@
 		'LAINNYA': ''
 	};
 	
-	const classType = typeClasses[type] || '';
+	let classType = $derived(typeClasses[type] || '');
 </script>
 
 <span class="badge {classType}">{text || type}</span>

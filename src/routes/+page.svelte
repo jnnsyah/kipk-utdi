@@ -3,7 +3,8 @@
 	import favicon from '$lib/assets/favicon.png';
 	import IndexLoading from '$lib/components/ui/IndexLoading.svelte';
 	let { data } = $props();
-	let { activities = [], faqs = [] } = data;
+	let activities = $derived(data.activities ?? []);
+	let faqs = $derived(data.faqs ?? []);
 
 	let selectedYear = $state('Terbaru');
 	let availableYears = $derived([...new Set(activities.map(act => new Date(act.date).getFullYear()))].sort((a, b) => b - a));
@@ -263,8 +264,15 @@
 	.accordion-open .accordion-content {
 		max-height: 500px;
 		opacity: 1;
-		transform: translateY(16px) rotate(-1deg);
-		margin-bottom: 24px;
+		transform: translateY(8px) rotate(0deg);
+		margin-bottom: 16px;
+	}
+
+	@media (min-width: 768px) {
+		.accordion-open .accordion-content {
+			transform: translateY(16px) rotate(0deg);
+			margin-bottom: 24px;
+		}
 	}
 
 	.accordion-open .arrow-icon {
@@ -292,11 +300,11 @@
 		<div class="relative w-full">
 			<div class="absolute inset-0 z-0 grid-bg-header"></div>
 			
-			<nav class="fixed left-1/2 w-[90%] md:w-max z-50 bg-surface border-4 border-on-background shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] rounded-[24px] md:rounded-full px-8 transition-all duration-500 {isFooterVisible ? '-top-32' : 'top-6'} {isDrawerOpen ? 'max-md:-translate-x-1/2 md:-translate-x-[calc(50%+252px)]' : '-translate-x-1/2'}">
-				<div class="flex justify-between items-center gap-12 py-3">
-					<div class="flex items-center gap-3 pr-4">
-						<img src={favicon} alt="Logo KIP-K UTDI" class="h-10 w-auto" />
-						<span class="font-display text-headline-md text-on-background tracking-tighter">KIP-K UTDI</span>
+			<nav class="fixed left-1/2 w-[90%] md:w-max z-50 bg-surface border-2 md:border-4 border-on-background shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] rounded-[24px] md:rounded-full px-4 md:px-8 transition-all duration-500 {isFooterVisible ? '-top-32' : 'top-3 md:top-6'} {isDrawerOpen ? 'max-md:-translate-x-1/2 md:-translate-x-[calc(50%+252px)]' : '-translate-x-1/2'}">
+				<div class="flex justify-between items-center gap-3 md:gap-12 py-1.5 md:py-3">
+					<div class="flex items-center gap-2 md:gap-3 pr-2 md:pr-4">
+						<img src={favicon} alt="Logo KIP-K UTDI" class="h-8 md:h-10 w-auto" />
+						<span class="font-display text-base md:text-headline-md text-on-background tracking-tighter font-bold">KIP-K UTDI</span>
 					</div>
 					<div class="hidden md:flex gap-4 lg:gap-8 items-center">
 						<a class="font-label-bold text-label-bold px-3 py-2 rounded-lg border-2 border-transparent hover:border-on-background hover:bg-primary-fixed hover:-translate-y-1 transition-all" href="#home">Beranda</a>
@@ -304,16 +312,16 @@
 						<a class="font-label-bold text-label-bold text-on-background px-3 py-2 rounded-lg border-2 border-transparent hover:border-on-background hover:bg-tertiary-fixed hover:-translate-y-1 transition-all" href="#kegiatan">Kegiatan</a>
 						<a class="font-label-bold text-label-bold text-on-background px-3 py-2 rounded-lg border-2 border-transparent hover:border-on-background hover:bg-primary-fixed hover:-translate-y-1 transition-all" href="#faq">FAQ</a>
 					</div>
-					<button class="md:hidden p-2 border-2 border-on-background bg-surface-container hover:bg-primary-container hover:text-on-primary-container transition-all duration-300 rounded-lg {mobileMenuOpen ? 'rotate-90' : ''}" onclick={() => mobileMenuOpen = !mobileMenuOpen}>
-						<span class="material-symbols-outlined">{mobileMenuOpen ? 'close' : 'menu'}</span>
+					<button class="md:hidden p-1.5 border-2 border-on-background bg-surface-container hover:bg-primary-container hover:text-on-primary-container transition-all duration-300 rounded-lg {mobileMenuOpen ? 'rotate-90' : ''}" onclick={() => mobileMenuOpen = !mobileMenuOpen}>
+						<span class="material-symbols-outlined text-[20px] md:text-[24px]">{mobileMenuOpen ? 'close' : 'menu'}</span>
 					</button>
 				</div>
-				<div class="md:hidden overflow-hidden transition-all duration-500 ease-in-out" style="max-height: {mobileMenuOpen ? '260px' : '0px'}; opacity: {mobileMenuOpen ? '1' : '0'}; transform: translateY({mobileMenuOpen ? '0px' : '-10px'});">
-					<div class="flex flex-col gap-2 mt-2 pb-6 px-2">
-						<a class="font-label-bold text-primary px-4 py-3 border-2 border-transparent hover:border-on-background hover:bg-primary-fixed hover:-translate-y-1 rounded-xl transition-all" href="#home" onclick={() => mobileMenuOpen = false}>Beranda</a>
-						<a class="font-label-bold text-on-background px-4 py-3 border-2 border-transparent hover:border-on-background hover:bg-secondary-container hover:-translate-y-1 rounded-xl transition-all" href="#tentang" onclick={() => mobileMenuOpen = false}>Tentang</a>
-						<a class="font-label-bold text-on-background px-4 py-3 border-2 border-transparent hover:border-on-background hover:bg-tertiary-fixed hover:-translate-y-1 rounded-xl transition-all" href="#kegiatan" onclick={() => mobileMenuOpen = false}>Kegiatan</a>
-						<a class="font-label-bold text-on-background px-4 py-3 border-2 border-transparent hover:border-on-background hover:bg-primary-fixed hover:-translate-y-1 rounded-xl transition-all" href="#faq" onclick={() => mobileMenuOpen = false}>FAQ</a>
+				<div class="md:hidden overflow-hidden transition-all duration-500 ease-in-out" style="max-height: {mobileMenuOpen ? '200px' : '0px'}; opacity: {mobileMenuOpen ? '1' : '0'}; transform: translateY({mobileMenuOpen ? '0px' : '-10px'});">
+					<div class="flex flex-col gap-1 mt-1 pb-4 px-1">
+						<a class="font-label-bold text-primary px-4 py-2 border-2 border-transparent hover:border-on-background hover:bg-primary-fixed hover:-translate-y-1 rounded-xl transition-all" href="#home" onclick={() => mobileMenuOpen = false}>Beranda</a>
+						<a class="font-label-bold text-on-background px-4 py-2 border-2 border-transparent hover:border-on-background hover:bg-secondary-container hover:-translate-y-1 rounded-xl transition-all" href="#tentang" onclick={() => mobileMenuOpen = false}>Tentang</a>
+						<a class="font-label-bold text-on-background px-4 py-2 border-2 border-transparent hover:border-on-background hover:bg-tertiary-fixed hover:-translate-y-1 rounded-xl transition-all" href="#kegiatan" onclick={() => mobileMenuOpen = false}>Kegiatan</a>
+						<a class="font-label-bold text-on-background px-4 py-2 border-2 border-transparent hover:border-on-background hover:bg-primary-fixed hover:-translate-y-1 rounded-xl transition-all" href="#faq" onclick={() => mobileMenuOpen = false}>FAQ</a>
 					</div>
 				</div>
 			</nav>
@@ -429,8 +437,8 @@
 			{#if filteredActivities.length > 0}
 			<div class="flex overflow-x-auto gap-gutter pb-12 custom-scrollbar snap-x scroll-smooth" bind:this={activitiesContainer} onmouseenter={stopActivitiesAutoScroll} onmouseleave={startActivitiesAutoScroll} ontouchstart={stopActivitiesAutoScroll} ontouchend={startActivitiesAutoScroll}>
 				{#each filteredActivities as activity}
-				<div class="min-w-[320px] md:min-w-[450px] bg-surface border-4 border-on-background neo-shadow snap-start flex flex-col group hover:bg-surface-container-low transition-colors duration-300">
-					<div class="h-64 overflow-hidden border-b-4 border-on-background relative">
+				<div class="min-w-[280px] md:min-w-[450px] bg-surface border-2 md:border-4 border-on-background neo-shadow snap-start flex flex-col group hover:bg-surface-container-low transition-colors duration-300">
+					<div class="h-44 md:h-64 overflow-hidden border-b-2 md:border-b-4 border-on-background relative">
 						{#if activity.photos && activity.photos.length > 0}
 						<img src={activity.photos[0]} alt={activity.title} class="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105" loading="lazy">
 						{:else}
@@ -445,15 +453,15 @@
 							{new Date(activity.date).getFullYear()}
 						</div>
 					</div>
-					<div class="p-8 flex flex-col flex-1 justify-between">
+					<div class="p-4 md:p-8 flex flex-col flex-1 justify-between">
 						<div>
-							<div class="flex items-center gap-2 text-primary font-label-bold mb-3 group-hover:translate-x-1 transition-transform">
-								<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+							<div class="flex items-center gap-2 text-primary font-label-bold mb-2 md:mb-3 group-hover:translate-x-1 transition-transform">
+								<span class="material-symbols-outlined text-[16px] md:text-[18px]">calendar_today</span>
 								{formatDate(activity.date)}
 							</div>
-							<h3 class="font-headline-md text-xl font-bold mb-6 h-14 line-clamp-2 group-hover:text-primary transition-colors">{activity.title}</h3>
+							<h3 class="font-headline-md text-base md:text-xl font-bold mb-4 md:mb-6 h-12 md:h-14 line-clamp-2 group-hover:text-primary transition-colors">{activity.title}</h3>
 						</div>
-						<button onclick={() => openDetailDrawer(activity)} class="w-full bg-primary-fixed text-on-primary-fixed px-6 py-3 border-4 border-on-background neo-shadow-sm font-label-bold neo-hover neo-active transition-all flex justify-between items-center mt-auto group-hover:bg-primary group-hover:text-on-primary">
+						<button onclick={() => openDetailDrawer(activity)} class="w-full bg-primary-fixed text-on-primary-fixed px-4 py-2.5 md:px-6 md:py-3 border-2 md:border-4 border-on-background neo-shadow-sm font-label-bold neo-hover neo-active transition-all flex justify-between items-center mt-auto group-hover:bg-primary group-hover:text-on-primary">
 							Lihat Detail
 							<span class="material-symbols-outlined group-hover:translate-x-2 transition-transform">arrow_forward</span>
 						</button>
@@ -470,20 +478,20 @@
 
 		<section id="faq" class="bg-surface-container py-24 px-margin-mobile md:px-margin-desktop transition-all duration-500">
 			<div class="max-w-3xl mx-auto">
-				<h2 class="font-display text-display text-4xl font-bold mb-12 text-center">Tanya Jawab (FAQ)</h2>
+				<h2 class="font-display text-display text-4xl font-bold mb-12 text-center">Sering Ditanyakan</h2>
 				{#if faqs.length > 0}
-				<div class="space-y-8">
+				<div class="space-y-4 md:space-y-6">
 					{#each faqs as faq, index}
 					<div class="faq-item group" class:accordion-open={activeFaq === faq.id}>
 						<button 
-							class="relative z-10 w-full flex justify-between items-center p-6 text-left focus:outline-none bg-surface hover:bg-primary-fixed border-4 border-on-background neo-shadow-sm transition-all neo-hover {index % 2 === 0 ? 'rotate-1 hover:rotate-0' : '-rotate-1 hover:rotate-0'} {activeFaq === faq.id ? 'neo-shadow bg-primary-fixed' : ''} {activeFaqHover === faq.id ? 'bg-primary-fixed -translate-x-0.5 -translate-y-0.5 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] rotate-0' : ''}" 
+							class="relative z-10 w-full flex justify-between items-center p-4 md:p-6 text-left focus:outline-none bg-surface hover:bg-primary-fixed border-2 md:border-4 border-on-background neo-shadow-sm transition-all neo-hover {index % 2 === 0 ? 'rotate-1 hover:rotate-0' : '-rotate-1 hover:rotate-0'} {activeFaq === faq.id ? 'neo-shadow bg-primary-fixed' : ''} {activeFaqHover === faq.id ? 'bg-primary-fixed -translate-x-0.5 -translate-y-0.5 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] md:shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] rotate-0' : ''}" 
 							onclick={(e) => { e.stopPropagation(); toggleFaq(faq.id); activeFaqHover = activeFaqHover === faq.id ? null : faq.id; }}
 						>
-							<span class="font-headline-md text-xl font-bold group-hover:translate-x-2 transition-transform {activeFaqHover === faq.id ? 'translate-x-2' : ''}">{faq.question}</span>
+							<span class="font-headline-md text-base md:text-xl font-bold group-hover:translate-x-2 transition-transform {activeFaqHover === faq.id ? 'translate-x-2' : ''}">{faq.question}</span>
 							<span class="material-symbols-outlined arrow-icon transition-transform duration-300 group-hover:scale-125 {activeFaqHover === faq.id ? 'scale-125' : ''}">keyboard_arrow_down</span>
 						</button>
-						<div class="accordion-content" style="transform: translateY(16px) rotate(0deg) !important;">
-							<div class="p-8 border-4 border-on-background shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] font-body-md font-bold rotate-0 
+						<div class="accordion-content">
+							<div class="p-4 md:p-8 border-2 md:border-4 border-on-background shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] font-body-md font-bold rotate-0 
 								{index % 3 === 0 ? 'bg-primary-container text-on-primary-container' : index % 3 === 1 ? 'bg-secondary-container text-on-secondary-container' : 'bg-tertiary-fixed text-on-tertiary-fixed-variant'}">
 								{@html faq.answer}
 							</div>
@@ -512,17 +520,6 @@
 						<p class="font-body-md text-on-surface-variant mb-8">
 							Membangun generasi emas digital yang berprestasi dan berkarakter melalui kolaborasi.
 						</p>
-						<div class="flex gap-4">
-							<a class="w-12 h-12 bg-on-background text-background flex items-center justify-center neo-shadow-sm neo-hover hover:-translate-y-2 hover:-rotate-12 transition-all" href="#">
-								<span class="material-symbols-outlined">share</span>
-							</a>
-							<a class="w-12 h-12 bg-primary text-on-primary flex items-center justify-center border-4 border-on-background neo-shadow-sm neo-hover hover:-translate-y-2 hover:rotate-12 hover:bg-primary-container hover:text-on-primary-container transition-all" href="#">
-								<span class="material-symbols-outlined">group</span>
-							</a>
-							<a class="w-12 h-12 bg-secondary text-on-secondary flex items-center justify-center border-4 border-on-background neo-shadow-sm neo-hover hover:-translate-y-2 hover:rotate-12 hover:bg-secondary-container hover:text-on-secondary-container transition-all" href="#">
-								<span class="material-symbols-outlined">mail</span>
-							</a>
-						</div>
 					</div>
 					<div class="grid grid-cols-2 gap-12">
 						<div>
@@ -548,7 +545,6 @@
 		<!-- Backdrop -->
 		<div class="absolute inset-0 bg-on-background/40 backdrop-blur-xs transition-opacity duration-500 md:hidden {isDrawerOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}" onclick={closeDetailDrawer} role="button" tabindex="0" onkeypress={(e) => e.key === 'Enter' && closeDetailDrawer()}></div>
 
-		<!-- Panel -->
 		<div bind:this={drawerPanel} class="{isDrawerOpen ? 'pointer-events-auto' : 'pointer-events-none'} w-full md:w-[480px] h-[88vh] md:h-[85vh] bg-surface border-4 md:border-2 border-on-background fixed bottom-0 left-0 right-0 md:relative md:bottom-auto md:left-auto md:right-auto rounded-t-[32px] md:rounded-[24px] overflow-hidden shadow-[0px_-12px_0px_0px_rgba(0,0,0,1)] md:shadow-[-8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col z-10 transition-transform duration-500 ease-out {isDrawerOpen ? 'translate-y-0 md:translate-x-0' : 'translate-y-full md:translate-x-[120%]'}" >
 			
 			<div 

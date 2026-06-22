@@ -18,6 +18,11 @@
 	
 	let currentPage = $state(1);
 	let totalItems = $state(data.totalItems ?? 0);
+
+	$effect(() => {
+		contents = data.contents ?? [];
+		totalItems = data.totalItems ?? 0;
+	});
 	const itemsPerPage = 10;
 	let totalPages = $derived(Math.ceil(totalItems / itemsPerPage) || 1);
 

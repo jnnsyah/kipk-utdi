@@ -33,3 +33,6 @@ test_*.js
 # AI Agents
 .agents/
 skills-lock.json
+
+# Git Backups
+.git-backup/

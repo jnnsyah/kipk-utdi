@@ -145,9 +145,15 @@
 	let activeFaqHover = $state(null);
 
 	onMount(() => {
+		// Prevent body scroll during the loading screen
+		if (isLoading) {
+			document.body.style.overflow = 'hidden';
+		}
+
 		// Simulate data fetching delay for the custom loading page
-		setTimeout(() => {
+		const loadingTimer = setTimeout(() => {
 			isLoading = false;
+			document.body.style.overflow = '';
 		}, 3000);
 
 		const handleScroll = () => {
@@ -178,6 +184,8 @@
 		}
 
 		return () => {
+			clearTimeout(loadingTimer);
+			document.body.style.overflow = '';
 			window.removeEventListener('scroll', handleScroll);
 			window.removeEventListener('click', handleDocumentClick);
 			stopActivitiesAutoScroll();
@@ -288,13 +296,13 @@
 	<IndexLoading />
 {/if}
 
-<div class="bg-background font-body-md text-on-background selection:bg-primary-container relative overflow-x-hidden min-h-screen">
+<div class="bg-background font-body-md text-on-background selection:bg-primary-container relative overflow-x-hidden min-h-screen transition-opacity duration-1000 ease-in-out" class:opacity-0={isLoading} class:opacity-100={!isLoading}>
 	<div id="main-wrapper" class="transition-[padding] duration-500 ease-in-out w-full box-border" class:md:pr-[504px]={isDrawerOpen}>
 		
 		<div class="relative w-full">
 			<div class="absolute inset-0 z-0 grid-bg-header"></div>
 			
-			<nav class="fixed left-1/2 w-[90%] md:w-max z-50 bg-surface border-2 md:border-4 border-on-background shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] rounded-[24px] md:rounded-full px-4 md:px-8 transition-all duration-500 {isFooterVisible ? '-top-32' : 'top-3 md:top-6'} {isDrawerOpen ? 'max-md:-translate-x-1/2 md:-translate-x-[calc(50%+252px)]' : '-translate-x-1/2'}">
+			<nav class="fixed left-1/2 w-[90%] md:w-max z-50 bg-surface border-2 md:border-4 border-on-background shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] rounded-[24px] md:rounded-full px-4 md:px-8 transition-all duration-500 {isLoading || isFooterVisible ? '-top-32' : 'top-3 md:top-6'} {isDrawerOpen ? 'max-md:-translate-x-1/2 md:-translate-x-[calc(50%+252px)]' : '-translate-x-1/2'}">
 				<div class="flex justify-between items-center gap-3 md:gap-12 py-1.5 md:py-3">
 					<div class="flex items-center gap-2 md:gap-3 pr-2 md:pr-4">
 						<img src={favicon} alt="Logo KIP-K UTDI" class="h-8 md:h-10 w-auto" />
@@ -321,7 +329,7 @@
 			</nav>
 
 			<header id="home" class="relative overflow-hidden pt-36 pb-24 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto transition-all duration-500 z-10">
-				<div class="grid grid-cols-1 gap-12 items-center">
+				<div class="grid grid-cols-1 gap-12 items-center transition-all duration-1000 ease-out delay-200" class:opacity-0={isLoading} class:translate-y-8={isLoading} class:opacity-100={!isLoading} class:translate-y-0={!isLoading}>
 					<div class="z-10 text-center mx-auto flex flex-col items-center rounded-full hero-radial p-8">
 						<h1 class="font-display mb-8 md:mb-12 leading-tight">
 							<span 

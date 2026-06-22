@@ -1,8 +1,12 @@
 <script>
 	import { onMount } from 'svelte';
 	import favicon from '$lib/assets/favicon.png';
+	import IndexLoading from '$lib/components/ui/IndexLoading.svelte';
 	let { data } = $props();
 	let { activities = [], faqs = [] } = data;
+
+	let isLoading = $state(true);
+
 
 	// Drawer state
 	let isDrawerOpen = $state(false);
@@ -72,6 +76,11 @@
 	}
 
 	onMount(() => {
+		// Simulate data fetching delay for the custom loading page
+		setTimeout(() => {
+			isLoading = false;
+		}, 3000);
+
 		const handleScroll = () => {
 			if (isDrawerOpen) {
 				if (Math.abs(window.scrollY - drawerOpenScrollY) > 50) {
@@ -190,6 +199,10 @@
 		background: radial-gradient(circle, rgba(250, 249, 244, 0.9) 0%, rgba(250, 249, 244, 0.6) 50%, transparent 100%);
 	}
 </style>
+
+{#if isLoading}
+	<IndexLoading />
+{/if}
 
 <div class="bg-background font-body-md text-on-background selection:bg-primary-container relative overflow-x-hidden min-h-screen">
 	<div id="main-wrapper" class="transition-[padding] duration-500 ease-in-out w-full box-border" class:md:pr-[504px]={isDrawerOpen}>

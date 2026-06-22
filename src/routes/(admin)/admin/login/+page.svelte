@@ -1,6 +1,7 @@
 <script>
 	import { page } from '$app/stores';
 	import Icon from '$lib/components/icons/Icon.svelte';
+	import { getSupabase } from '$lib/services/activityService.js';
 
 	/** @type {import('./$types').ActionData} */
 	let { form } = $props();
@@ -23,10 +24,31 @@
 	});
 
 	let isLoading = $state(false);
+	let loginError = $state('');
 
-	function handleLoginSubmit() {
+	async function handleGoogleLogin(e) {
+		e.preventDefault();
 		isLoading = true;
-		// No return — allow native form submission for proper OAuth redirect
+		loginError = '';
+		try {
+			const supabase = getSupabase();
+			const redirectTo = `${window.location.origin}/auth/callback`;
+			const { error } = await supabase.auth.signInWithOAuth({
+				provider: 'google',
+				options: {
+					redirectTo,
+					queryParams: { prompt: 'select_account' }
+				}
+			});
+			if (error) {
+				loginError = error.message;
+				isLoading = false;
+			}
+			// On success, supabase redirects the browser to Google automatically
+		} catch (err) {
+			loginError = 'Terjadi kesalahan. Silakan coba lagi.';
+			isLoading = false;
+		}
 	}
 </script>
 
@@ -86,13 +108,14 @@
 				{/if}
 
 
-				<!-- Google OAuth Login Form -->
-				<form
-					method="POST"
-					action="?/login"
-					onsubmit={handleLoginSubmit}
-				>
-					<button type="submit" class="google-btn" disabled={isLoading} id="btn-google-login">
+				<!-- Google OAuth Login Button (client-side) -->
+				{#if loginError}
+					<div class="error-alert" role="alert">
+						<Icon name="error" size={20} color="#ba1a1a" />
+						<p>{loginError}</p>
+					</div>
+				{/if}
+				<button type="button" class="google-btn" disabled={isLoading} id="btn-google-login" onclick={handleGoogleLogin}>
 						{#if isLoading}
 							<span class="spinner"></span>
 							<span>Mengarahkan...</span>
@@ -124,7 +147,6 @@
 							<span>Masuk dengan Google</span>
 						{/if}
 					</button>
-				</form>
 
 				<!-- Info note -->
 				<div class="info-note">

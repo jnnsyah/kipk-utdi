@@ -2,6 +2,20 @@
 	import { onMount } from 'svelte';
 	import favicon from '$lib/assets/favicon.png';
 	import IndexLoading from '$lib/components/ui/IndexLoading.svelte';
+	import MenuIcon from '$lib/components/icons/menu.svelte';
+	import CloseIcon from '$lib/components/icons/close.svelte';
+	import LightbulbIcon from '$lib/components/icons/lightbulb.svelte';
+	import RocketLaunchIcon from '$lib/components/icons/rocket_launch.svelte';
+	import AdsClickIcon from '$lib/components/icons/ads_click.svelte';
+	import ImageIcon from '$lib/components/icons/image.svelte';
+	import CalendarTodayIcon from '$lib/components/icons/calendar_today.svelte';
+	import ArrowForwardIcon from '$lib/components/icons/arrow_forward.svelte';
+	import KeyboardArrowDownIcon from '$lib/components/icons/keyboard_arrow_down.svelte';
+	import ArrowBackIcon from '$lib/components/icons/arrow_back.svelte';
+	import CalendarMonthIcon from '$lib/components/icons/calendar_month.svelte';
+	import LocationOnIcon from '$lib/components/icons/location_on.svelte';
+	import ImageNotSupportedIcon from '$lib/components/icons/image_not_supported.svelte';
+
 	let { data } = $props();
 	let activities = $derived(data.activities ?? []);
 	let faqs = $derived(data.faqs ?? []);
@@ -315,7 +329,11 @@
 						<a class="font-label-bold text-label-bold text-on-background px-3 py-2 rounded-lg border-2 border-transparent hover:border-on-background hover:bg-primary-fixed hover:-translate-y-1 transition-all" href="#faq">FAQ</a>
 					</div>
 					<button class="md:hidden p-1.5 border-2 border-on-background bg-surface-container hover:bg-primary-container hover:text-on-primary-container transition-all duration-300 rounded-lg {mobileMenuOpen ? 'rotate-90' : ''}" onclick={() => mobileMenuOpen = !mobileMenuOpen}>
-						<span class="material-symbols-outlined text-[20px] md:text-[24px]">{mobileMenuOpen ? 'close' : 'menu'}</span>
+						{#if mobileMenuOpen}
+							<CloseIcon class="w-[20px] h-[20px] md:w-[24px] md:h-[24px]" />
+						{:else}
+							<MenuIcon class="w-[20px] h-[20px] md:w-[24px] md:h-[24px]" />
+						{/if}
 					</button>
 				</div>
 				<div class="md:hidden overflow-hidden transition-all duration-500 ease-in-out" style="max-height: {mobileMenuOpen ? '200px' : '0px'}; opacity: {mobileMenuOpen ? '1' : '0'}; transform: translateY({mobileMenuOpen ? '0px' : '-10px'});">
@@ -370,7 +388,7 @@
 						onclick={(e) => { e.stopPropagation(); activeAboutCard = activeAboutCard === 'visi' ? null : 'visi'; }}
 					>
 						<div class="w-12 h-12 md:w-16 md:h-16 bg-primary-container border-2 border-on-background flex items-center justify-center mb-4 md:mb-6 transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110 {activeAboutCard === 'visi' ? 'rotate-12 scale-110' : ''}">
-							<span class="material-symbols-outlined text-2xl md:text-[40px]" style="font-variation-settings: 'FILL' 1">lightbulb</span>
+							<LightbulbIcon class="w-6 h-6 md:w-[40px] md:h-[40px]" />
 						</div>
 						<h3 class="font-headline-lg text-xl md:text-2xl font-bold mb-3 md:mb-4 group-hover:text-primary transition-colors {activeAboutCard === 'visi' ? 'text-primary' : ''}">Visi</h3>
 						<p class="font-body-md text-sm md:text-base text-on-surface-variant group-hover:text-on-background transition-colors {activeAboutCard === 'visi' ? 'text-on-background' : ''}">
@@ -382,7 +400,7 @@
 						onclick={(e) => { e.stopPropagation(); activeAboutCard = activeAboutCard === 'misi' ? null : 'misi'; }}
 					>
 						<div class="w-12 h-12 md:w-16 md:h-16 bg-secondary-container border-2 border-on-background flex items-center justify-center mb-4 md:mb-6 transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-110 {activeAboutCard === 'misi' ? '-rotate-12 scale-110' : ''}">
-							<span class="material-symbols-outlined text-2xl md:text-[40px]" style="font-variation-settings: 'FILL' 1">rocket_launch</span>
+							<RocketLaunchIcon class="w-6 h-6 md:w-[40px] md:h-[40px]" />
 						</div>
 						<h3 class="font-headline-lg text-xl md:text-2xl font-bold mb-3 md:mb-4 group-hover:text-secondary transition-colors {activeAboutCard === 'misi' ? 'text-secondary' : ''}">Misi</h3>
 						<p class="font-body-md text-sm md:text-base text-on-surface-variant group-hover:text-on-background transition-colors {activeAboutCard === 'misi' ? 'text-on-background' : ''}">
@@ -394,7 +412,7 @@
 						onclick={(e) => { e.stopPropagation(); activeAboutCard = activeAboutCard === 'tujuan' ? null : 'tujuan'; }}
 					>
 						<div class="w-12 h-12 md:w-16 md:h-16 bg-surface border-2 border-on-background flex items-center justify-center mb-4 md:mb-6 transition-all duration-500 group-hover:rotate-180 group-hover:bg-primary-container {activeAboutCard === 'tujuan' ? 'rotate-180 bg-primary-container' : ''}">
-							<span class="material-symbols-outlined text-2xl md:text-[40px]" style="font-variation-settings: 'FILL' 1">ads_click</span>
+							<AdsClickIcon class="w-6 h-6 md:w-[40px] md:h-[40px]" />
 						</div>
 						<h3 class="font-headline-lg text-xl md:text-2xl font-bold mb-3 md:mb-4">Tujuan</h3>
 						<p class="font-body-md text-sm md:text-base text-on-surface-variant group-hover:text-on-background transition-colors {activeAboutCard === 'tujuan' ? 'text-on-background' : ''}">
@@ -447,7 +465,7 @@
 						<img src={activity.photos[0]} alt={activity.title} class="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105" loading="lazy">
 						{:else}
 						<div class="w-full h-full bg-surface-variant flex items-center justify-center group-hover:bg-primary-fixed transition-colors duration-300">
-							<span class="material-symbols-outlined text-6xl text-on-surface-variant group-hover:scale-110 transition-transform duration-300">image</span>
+							<ImageIcon class="w-[60px] h-[60px] text-on-surface-variant group-hover:scale-110 transition-transform duration-300" />
 						</div>
 						{/if}
 						<div class="absolute top-4 left-4 bg-on-background text-background px-4 py-1 font-label-bold uppercase group-hover:bg-primary transition-colors">
@@ -460,14 +478,14 @@
 					<div class="p-4 md:p-8 flex flex-col flex-1 justify-between">
 						<div>
 							<div class="flex items-center gap-2 text-primary font-label-bold mb-2 md:mb-3 group-hover:translate-x-1 transition-transform">
-								<span class="material-symbols-outlined text-[16px] md:text-[18px]">calendar_today</span>
+								<CalendarTodayIcon class="w-[16px] h-[16px] md:w-[18px] md:h-[18px]" />
 								{formatDate(activity.date)}
 							</div>
 							<h3 class="font-headline-md text-base md:text-xl font-bold mb-4 md:mb-6 h-12 md:h-14 line-clamp-2 group-hover:text-primary transition-colors">{activity.title}</h3>
 						</div>
 						<button onclick={() => openDetailDrawer(activity)} class="w-full bg-primary-fixed text-on-primary-fixed px-4 py-2.5 md:px-6 md:py-3 border-2 md:border-4 border-on-background neo-shadow-sm font-label-bold neo-hover neo-active transition-all flex justify-between items-center mt-auto group-hover:bg-primary group-hover:text-on-primary">
 							Lihat Detail
-							<span class="material-symbols-outlined group-hover:translate-x-2 transition-transform">arrow_forward</span>
+							<ArrowForwardIcon class="group-hover:translate-x-2 transition-transform" />
 						</button>
 					</div>
 				</div>
@@ -492,7 +510,7 @@
 							onclick={(e) => { e.stopPropagation(); toggleFaq(faq.id); activeFaqHover = activeFaqHover === faq.id ? null : faq.id; }}
 						>
 							<span class="font-headline-md text-base md:text-xl font-bold group-hover:translate-x-2 transition-transform {activeFaqHover === faq.id ? 'translate-x-2' : ''}">{faq.question}</span>
-							<span class="material-symbols-outlined arrow-icon transition-transform duration-300 group-hover:scale-125 {activeFaqHover === faq.id ? 'scale-125' : ''}">keyboard_arrow_down</span>
+							<KeyboardArrowDownIcon class="arrow-icon transition-transform duration-300 group-hover:scale-125 {activeFaqHover === faq.id ? 'scale-125' : ''}" />
 						</button>
 						<div class="accordion-content">
 							<div class="p-4 md:p-8 border-2 md:border-4 border-on-background shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] font-body-md font-bold rotate-0 
@@ -563,7 +581,7 @@
 					<span class="font-label-bold text-on-surface-variant">Tahun: {new Date(selectedActivity.date).getFullYear()}</span>
 				</div>
 				<button onclick={closeDetailDrawer} class="w-10 h-10 bg-error text-on-error border-2 border-on-background neo-shadow-sm neo-hover neo-active flex items-center justify-center font-bold text-headline-md">
-					<span class="material-symbols-outlined">close</span>
+					<CloseIcon />
 				</button>
 			</div>
 
@@ -576,7 +594,7 @@
 							<div class="w-full h-full flex-shrink-0 relative bg-surface-variant">
 								<img src={photo} class="w-full h-full object-cover object-center" alt="Dokumentasi" loading="lazy">
 								<div class="absolute inset-0 flex items-center justify-center -z-10 bg-surface-variant">
-									<span class="material-symbols-outlined text-4xl animate-pulse text-on-surface-variant">image</span>
+									<ImageIcon class="w-9 h-9 animate-pulse text-on-surface-variant" />
 								</div>
 							</div>
 							{/each}
@@ -584,10 +602,10 @@
 						
 						{#if selectedActivity.photos.length > 1}
 						<button onclick={() => slidePhoto(-1)} class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-surface border-2 border-on-background neo-shadow-sm flex items-center justify-center hover:bg-primary hover:text-on-primary active:translate-x-1 transition-all z-10">
-							<span class="material-symbols-outlined font-bold">arrow_back</span>
+							<ArrowBackIcon />
 						</button>
 						<button onclick={() => slidePhoto(1)} class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-surface border-2 border-on-background neo-shadow-sm flex items-center justify-center hover:bg-primary hover:text-on-primary active:-translate-x-1 transition-all z-10">
-							<span class="material-symbols-outlined font-bold">arrow_forward</span>
+							<ArrowForwardIcon />
 						</button>
 						<div class="absolute bottom-3 right-3 bg-on-background text-background font-label-bold px-3 py-1 text-xs border-2 border-background z-10">
 							<span>{activePhotoIndex + 1} / {selectedActivity.photos.length}</span>
@@ -595,7 +613,7 @@
 						{/if}
 						{:else}
 						<div class="w-full h-full flex items-center justify-center">
-							<span class="material-symbols-outlined text-6xl text-on-surface-variant">image_not_supported</span>
+							<ImageNotSupportedIcon class="w-[60px] h-[60px] text-on-surface-variant" />
 						</div>
 						{/if}
 					</div>
@@ -603,9 +621,9 @@
 
 				<div>
 					<div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-primary font-label-bold mb-3 text-sm">
-						<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[18px]">calendar_month</span><span>{formatDate(selectedActivity.date)}</span></span>
+						<span class="flex items-center gap-1"><CalendarMonthIcon class="w-[18px] h-[18px]" /><span>{formatDate(selectedActivity.date)}</span></span>
 						<span class="text-on-background">•</span>
-						<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[18px]">location_on</span><span>{selectedActivity.location}</span></span>
+						<span class="flex items-center gap-1"><LocationOnIcon class="w-[18px] h-[18px]" /><span>{selectedActivity.location}</span></span>
 					</div>
 
 					<h2 class="font-display text-headline-md text-2xl font-bold mb-6 leading-tight">{selectedActivity.title}</h2>

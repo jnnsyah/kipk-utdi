@@ -1,3 +1,8 @@
-# allow crawling everything by default
+# https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Disallow: /admin/
+Disallow: /admin
+Disallow: /auth/
+Disallow: /auth
+
+Sitemap: https://kipk.utdi.ac.id/sitemap.xml

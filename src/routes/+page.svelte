@@ -20,6 +20,23 @@
 	let activities = $derived(data.activities ?? []);
 	let faqs = $derived(data.faqs ?? []);
 
+	let ogImageUrl = $derived(data.url ? new URL(favicon, data.url).href : '');
+	let schemaData = $derived({
+		"@context": "https://schema.org",
+		"@type": "EducationalOrganization",
+		"name": "KIP-K UTDI",
+		"url": data.url || "https://kipk.utdi.ac.id",
+		"description": "Komunitas Mahasiswa Penerima KIP Kuliah (KIP-K) Universitas Teknologi Digital Indonesia (UTDI). Wadah kolaborasi, berbagi info, kegiatan, dan belajar bersama.",
+		"address": {
+			"@type": "PostalAddress",
+			"addressLocality": "Yogyakarta",
+			"addressCountry": "ID"
+		},
+		"sameAs": [
+			"https://utdi.id/kip-kuliah"
+		]
+	});
+
 	let selectedYear = $state('Terbaru');
 	let availableYears = $derived([...new Set(activities.map(act => new Date(act.date).getFullYear()))].sort((a, b) => b - a));
 	let filteredActivities = $derived(selectedYear === 'Terbaru' ? activities : activities.filter(act => new Date(act.date).getFullYear() === selectedYear));
@@ -249,7 +266,36 @@
 </script>
 
 <svelte:head>
-	<title>KIP-K UTDI - Komunitas Mahasiswa</title>
+	<title>KIP-K UTDI - Komunitas Mahasiswa Penerima KIP Kuliah</title>
+	<meta name="description" content="Komunitas Mahasiswa Penerima KIP Kuliah (KIP-K) Universitas Teknologi Digital Indonesia (UTDI). Wadah kolaborasi, berbagi info, kegiatan, dan belajar bersama." />
+	<meta name="keywords" content="KIP-K UTDI, KIP Kuliah UTDI, Kartu Indonesia Pintar Kuliah, Universitas Teknologi Digital Indonesia, UTDI, Komunitas Mahasiswa, Yogyakarta" />
+	
+	<!-- Canonical Link -->
+	{#if data.url}
+		<link rel="canonical" href={data.url} />
+	{/if}
+
+	<!-- Open Graph / Facebook -->
+	<meta property="og:type" content="website" />
+	<meta property="og:url" content={data.url || 'https://kipk.utdi.ac.id'} />
+	<meta property="og:title" content="KIP-K UTDI - Komunitas Mahasiswa Penerima KIP Kuliah" />
+	<meta property="og:description" content="Komunitas Mahasiswa Penerima KIP Kuliah (KIP-K) Universitas Teknologi Digital Indonesia (UTDI). Wadah kolaborasi, berbagi info, kegiatan, dan belajar bersama." />
+	{#if ogImageUrl}
+		<meta property="og:image" content={ogImageUrl} />
+	{/if}
+	<meta property="og:locale" content="id_ID" />
+
+	<!-- Twitter -->
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:url" content={data.url || 'https://kipk.utdi.ac.id'} />
+	<meta name="twitter:title" content="KIP-K UTDI - Komunitas Mahasiswa Penerima KIP Kuliah" />
+	<meta name="twitter:description" content="Komunitas Mahasiswa Penerima KIP Kuliah (KIP-K) Universitas Teknologi Digital Indonesia (UTDI). Wadah kolaborasi, berbagi info, kegiatan, dan belajar bersama." />
+	{#if ogImageUrl}
+		<meta name="twitter:image" content={ogImageUrl} />
+	{/if}
+
+	<!-- Structured Data (JSON-LD) -->
+	{@html `<script type="application/ld+json">${JSON.stringify(schemaData)}</script>`}
 </svelte:head>
 
 <!-- Global overrides and custom styles from ui.html that are not purely tailwind variables -->

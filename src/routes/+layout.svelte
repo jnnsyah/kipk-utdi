@@ -50,5 +50,8 @@
 	});
 </script>
 
-<svelte:head><link rel="icon" href={favicon} /></svelte:head>
+<svelte:head>
+	<link rel="icon" href={favicon} />
+	<meta name="google-site-verification" content="0YVENg7yy8LtxuVKZVyhpKfw_ku8J9-EMZ2jx6cK8nU" />
+</svelte:head>
 {@render children()}
